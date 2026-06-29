@@ -23,7 +23,10 @@ export default function SignupPage({ onNavigate }) {
   if (success) return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">YarmoukMDS</h1>
+        <div className="auth-logo">
+          <div className="logo-name">YUMD<span>s</span></div>
+          <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
+        </div>
         <h2>Check your email</h2>
         <p>We sent a verification link to <strong>{form.email}</strong>. Click it to activate your account, then sign in.</p>
         <div className="auth-links">
@@ -36,7 +39,10 @@ export default function SignupPage({ onNavigate }) {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">YarmoukMDS</h1>
+        <div className="auth-logo">
+          <div className="logo-name">YUMD<span>s</span></div>
+          <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
+        </div>
         <h2>Create account</h2>
         {error && <p className="auth-error">{error}</p>}
         <form onSubmit={handleSubmit}>

@@ -3,8 +3,25 @@ import { api } from "../api";
 
 const BASE = import.meta.env.VITE_API_BASE ?? "https://api.yarmoukmds.com";
 
+function fileIconClass(contentType) {
+  if (contentType?.includes("pdf")) return "pdf";
+  if (contentType?.includes("image")) return "img";
+  return "misc";
+}
+function fileEmoji(contentType) {
+  if (contentType?.includes("pdf"))   return "📄";
+  if (contentType?.includes("image")) return "🖼️";
+  if (contentType?.includes("video")) return "🎬";
+  return "📎";
+}
+function fmtSize(bytes) {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
 export default function ContentBrowser({ student }) {
-  const [year, setYear] = useState(student.year ?? 1);
+  const [year, setYear] = useState(student.current_year ?? student.year ?? 1);
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [topics, setTopics] = useState([]);
@@ -14,10 +31,7 @@ export default function ContentBrowser({ student }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setSelectedSubject(null);
-    setSelectedTopic(null);
-    setTopics([]);
-    setFiles([]);
+    setSelectedSubject(null); setSelectedTopic(null); setTopics([]); setFiles([]);
     setLoading(true);
     api.getSubjects(year)
       .then(d => setSubjects(d.subjects))
@@ -26,9 +40,7 @@ export default function ContentBrowser({ student }) {
   }, [year]);
 
   function selectSubject(s) {
-    setSelectedSubject(s);
-    setSelectedTopic(null);
-    setFiles([]);
+    setSelectedSubject(s); setSelectedTopic(null); setFiles([]);
     api.getTopics(s.id).then(d => setTopics(d.topics)).catch(e => setError(e.message));
   }
 
@@ -41,57 +53,73 @@ export default function ContentBrowser({ student }) {
     try {
       const { url } = await api.getFileUrl(file.id);
       window.open(`${BASE}${url}`, "_blank");
-    } catch (e) {
-      setError(e.message);
-    }
+    } catch (e) { setError(e.message); }
   }
 
   return (
-    <div className="content-browser">
-      <div className="year-tabs">
-        {[1,2,3,4,5,6].map(y => (
-          <button key={y} className={`year-tab${year === y ? " active" : ""}`} onClick={() => setYear(y)}>
-            Year {y}
-          </button>
-        ))}
-      </div>
+    <>
+      {error && <div className="auth-error" style={{ marginBottom: "1rem" }}>{error}</div>}
 
-      {error && <div className="auth-error" style={{margin:"1rem"}}>{error}</div>}
-
-      <div className="browser-grid">
-        <div className="browser-col">
-          <h3 className="col-title">Subjects</h3>
-          {loading ? <p className="col-empty">Loading…</p> : subjects.length === 0 ? (
-            <p className="col-empty">No subjects yet.</p>
-          ) : subjects.map(s => (
-            <button key={s.id} className={`browser-item${selectedSubject?.id === s.id ? " selected" : ""}`}
-              onClick={() => selectSubject(s)}>{s.name}</button>
-          ))}
-        </div>
-
-        <div className="browser-col">
-          <h3 className="col-title">Topics</h3>
-          {!selectedSubject ? <p className="col-empty">← Select a subject</p>
-            : topics.length === 0 ? <p className="col-empty">No topics yet.</p>
-            : topics.map(t => (
-              <button key={t.id} className={`browser-item${selectedTopic?.id === t.id ? " selected" : ""}`}
-                onClick={() => selectTopic(t)}>{t.name}</button>
-            ))}
-        </div>
-
-        <div className="browser-col">
-          <h3 className="col-title">Files</h3>
-          {!selectedTopic ? <p className="col-empty">← Select a topic</p>
-            : files.length === 0 ? <p className="col-empty">No files yet.</p>
-            : files.map(f => (
-              <button key={f.id} className="browser-item file-item" onClick={() => openFile(f)}>
-                <span className="file-icon">📄</span>
-                <span className="file-name">{f.name}</span>
-                {f.size_bytes && <span className="file-size">{(f.size_bytes / 1024 / 1024).toFixed(1)} MB</span>}
+      <div className="browser-card">
+        <div className="browser-card-header">
+          <h2>Study Materials</h2>
+          <div className="year-tabs">
+            {[1,2,3,4,5,6].map(y => (
+              <button key={y} className={`year-tab${year === y ? " active" : ""}`} onClick={() => setYear(y)}>
+                Year {y}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="browser-cols">
+          {/* Subjects */}
+          <div className="browser-col">
+            <div className="col-title">Subjects</div>
+            {loading ? <div className="col-empty">Loading…</div>
+              : subjects.length === 0 ? <div className="col-empty">No subjects for Year {year} yet.</div>
+              : subjects.map(s => (
+                <button key={s.id}
+                  className={`browser-item${selectedSubject?.id === s.id ? " selected" : ""}`}
+                  onClick={() => selectSubject(s)}>
+                  {s.name}
+                </button>
+              ))}
+          </div>
+
+          {/* Topics */}
+          <div className="browser-col">
+            <div className="col-title">Topics</div>
+            {!selectedSubject ? <div className="col-empty">Select a subject →</div>
+              : topics.length === 0 ? <div className="col-empty">No topics yet.</div>
+              : topics.map(t => (
+                <button key={t.id}
+                  className={`browser-item${selectedTopic?.id === t.id ? " selected" : ""}`}
+                  onClick={() => selectTopic(t)}>
+                  {t.name}
+                </button>
+              ))}
+          </div>
+
+          {/* Files */}
+          <div className="browser-col">
+            <div className="col-title">Files</div>
+            {!selectedTopic ? <div className="col-empty">Select a topic →</div>
+              : files.length === 0 ? <div className="col-empty">No files yet.</div>
+              : files.map(f => (
+                <button key={f.id} className="browser-item" onClick={() => openFile(f)}>
+                  <div className={`file-icon-wrap ${fileIconClass(f.content_type)}`}>
+                    {fileEmoji(f.content_type)}
+                  </div>
+                  <div className="file-meta">
+                    <div className="file-name">{f.name}</div>
+                    {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
+                  </div>
+                </button>
+              ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

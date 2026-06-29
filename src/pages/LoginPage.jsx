@@ -43,7 +43,10 @@ export default function LoginPage({ onLogin, onNavigate }) {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">YarmoukMDS</h1>
+        <div className="auth-logo">
+          <div className="logo-name">YUMD<span>s</span></div>
+          <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
+        </div>
 
         {tab === "login" && (
           <>
