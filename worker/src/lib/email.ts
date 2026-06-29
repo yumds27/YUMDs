@@ -5,13 +5,16 @@ const BASE_URL = "https://yarmoukmds.com";
 
 async function send(env: Env, to: string, subject: string, html: string, text: string) {
   if (!env.EMAIL) {
-    // Email sending not yet enabled. Enable via:
-    // npx wrangler email sending enable yarmoukmds.com
-    // Then add: [[send_email]] name = "EMAIL"  to wrangler.toml
     console.warn(`[email] EMAIL binding not configured — skipping send to ${to}`);
     return;
   }
-  await (env.EMAIL as { send: (o: unknown) => Promise<void> }).send({ to, from: FROM, subject, html, text });
+  try {
+    await (env.EMAIL as { send: (o: unknown) => Promise<void> }).send({ to, from: FROM, subject, html, text });
+  } catch (err) {
+    // Throws if email sending isn't enabled for the domain yet.
+    // Enable via: npx wrangler email sending enable yarmoukmds.com
+    console.error(`[email] send failed for ${to}:`, err);
+  }
 }
 
 export async function sendVerificationEmail(env: Env, to: string, token: string) {
