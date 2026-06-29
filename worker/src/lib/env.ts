@@ -3,6 +3,7 @@ export interface Env {
   FILES: R2Bucket;
   CONFIG: KVNamespace;
   ALLOWED_ORIGIN: string;
+  EMAIL?: { send: (opts: unknown) => Promise<void> };
   ADMIN_SECRET_KEY?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -11,8 +12,7 @@ export interface Env {
   GOOGLE_OAUTH_CLIENT_ID?: string;
 }
 
-// Lesson #7 / #10: a missing binding or env var should fail loudly in a log
-// and be visible at /api/health, not silently 500 per-request.
+// Lesson #7 / #10: missing bindings fail loudly, not silently per-request.
 export function checkBindings(env: Env) {
   const required: Array<[string, unknown]> = [
     ["DB", env.DB],
@@ -21,6 +21,7 @@ export function checkBindings(env: Env) {
     ["ALLOWED_ORIGIN", env.ALLOWED_ORIGIN],
   ];
   const optional: Array<[string, unknown]> = [
+    ["EMAIL", env.EMAIL],
     ["ADMIN_SECRET_KEY", env.ADMIN_SECRET_KEY],
     ["STRIPE_SECRET_KEY", env.STRIPE_SECRET_KEY],
     ["STRIPE_WEBHOOK_SECRET", env.STRIPE_WEBHOOK_SECRET],
@@ -28,12 +29,8 @@ export function checkBindings(env: Env) {
     ["CLAUDE_API_KEY", env.CLAUDE_API_KEY],
     ["GOOGLE_OAUTH_CLIENT_ID", env.GOOGLE_OAUTH_CLIENT_ID],
   ];
-
   const missingRequired = required.filter(([, v]) => v === undefined || v === null || v === "").map(([k]) => k);
-  if (missingRequired.length > 0) {
-    console.error(`[startup] missing required bindings: ${missingRequired.join(", ")}`);
-  }
-
+  if (missingRequired.length > 0) console.error(`[startup] missing required bindings: ${missingRequired.join(", ")}`);
   return {
     required: required.map(([k, v]) => ({ name: k, present: v !== undefined && v !== null && v !== "" })),
     optional: optional.map(([k, v]) => ({ name: k, present: v !== undefined && v !== null && v !== "" })),

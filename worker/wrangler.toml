@@ -3,19 +3,21 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Isolated, separate-business account (yumds27@gmail.com) — never reuse JUMED's
-# account_id/D1/R2/KV IDs (lesson #4 / new-infra checklist).
+# Isolated, separate-business account — never reuse JUMED's IDs (lesson #4).
 account_id = "94a4b70ec03e21db48fe1502e83277bd"
 
 workers_dev = true
 preview_urls = true
 
-# ── Custom domain for the worker API ───────────────────────────
-# Per lesson #9: check Security -> WAF -> Custom rules immediately after
-# adding this route, for a host-allowlist rule that silently 403s it.
+# Custom domain for the API — WAF already checked clean (lesson #9 ✓).
 routes = [
   { pattern = "api.yarmoukmds.com", custom_domain = true }
 ]
+
+# Email sending binding — requires enabling first:
+# npx wrangler email sending enable yarmoukmds.com
+[[send_email]]
+name = "EMAIL"
 
 [[d1_databases]]
 binding = "DB"
@@ -32,4 +34,6 @@ id = "a8adbf6f9b3345e78a998bf881c8ee6a"
 
 # ── Vars ──────────────────────────────────────────────────────
 [vars]
-ALLOWED_ORIGIN = "https://yarmoukmds.com"
+# Lesson #8: explicitly lists both apex and subdomains so CORS never breaks
+# on just one. Comma-separated; localhost included for local wrangler dev.
+ALLOWED_ORIGIN = "https://yarmoukmds.com,https://www.yarmoukmds.com,http://localhost:5173"
