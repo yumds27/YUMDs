@@ -1,0 +1,36 @@
+name = "yarmoukmds-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Isolated, separate-business account (yumds27@gmail.com) — never reuse JUMED's
+# account_id/D1/R2/KV IDs (lesson #4 / new-infra checklist).
+account_id = "94a4b70ec03e21db48fe1502e83277bd"
+
+workers_dev = true
+preview_urls = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "yarmoukmds-db"
+database_id = "2e56606d-5fbd-489c-bf0d-46155468cfe9"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "yarmoukmds-files"
+
+[[kv_namespaces]]
+binding = "CONFIG"
+id = "a8adbf6f9b3345e78a998bf881c8ee6a"
+
+# ── Vars ──────────────────────────────────────────────────────
+[vars]
+ALLOWED_ORIGIN = "https://yarmoukmds.com"
+
+# ── Custom domain for the worker API ───────────────────────────
+# Uncomment once yarmoukmds.com's zone is Active in this account.
+# Per lesson #9: check Security -> WAF -> Custom rules immediately after
+# adding this route, for a host-allowlist rule that silently 403s it.
+# routes = [
+#   { pattern = "api.yarmoukmds.com/*", custom_domain = true }
+# ]
