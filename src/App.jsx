@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "./api";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ContentBrowser from "./pages/ContentBrowser";
 import "./App.css";
 
 // Determine initial page from URL path
@@ -37,7 +38,7 @@ export default function App() {
         <button onClick={handleLogout}>Sign out</button>
       </header>
       <main>
-        <p>Dashboard coming soon — Phase 3 (content) is next.</p>
+        <ContentBrowser student={student} />
       </main>
     </div>
   );

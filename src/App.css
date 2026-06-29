@@ -20,6 +20,23 @@ body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; 
 .link-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: .9rem; text-decoration: underline; }
 .link-btn:hover { color: #1d4ed8; }
 
+/* ── Content browser ─────────────────────────────────────── */
+.year-tabs { display: flex; gap: .5rem; padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
+.year-tab { padding: .4rem .9rem; border: 1px solid #d1d5db; border-radius: 20px; background: #fff; cursor: pointer; font-size: .9rem; }
+.year-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.browser-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; height: calc(100vh - 130px); }
+.browser-col { border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
+.browser-col:last-child { border-right: none; }
+.col-title { padding: .75rem 1rem; font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+.col-empty { padding: 1rem; font-size: .9rem; color: #9ca3af; }
+.browser-item { display: flex; align-items: center; padding: .7rem 1rem; border: none; border-bottom: 1px solid #f3f4f6; background: #fff; cursor: pointer; text-align: left; font-size: .9rem; width: 100%; transition: background .1s; }
+.browser-item:hover { background: #f9fafb; }
+.browser-item.selected { background: #eff6ff; color: #2563eb; font-weight: 500; }
+.file-item { flex-direction: column; align-items: flex-start; gap: .2rem; }
+.file-icon { font-size: 1.2rem; }
+.file-name { font-size: .875rem; }
+.file-size { font-size: .75rem; color: #9ca3af; }
+
 /* ── Dashboard ───────────────────────────────────────────── */
 .dashboard-header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e7eb; }
 .dashboard-title { font-weight: 700; color: #2563eb; font-size: 1.2rem; flex: 1; }
