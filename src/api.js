@@ -64,6 +64,11 @@ export const api = {
   getPapers:          (year)       => request("GET", `/api/papers?year=${year}`),
   getPaperQuestions:  (paperId)    => request("GET", `/api/papers/${paperId}/questions`),
   checkAnswer:        (qId, ans)   => request("POST", `/api/questions/${qId}/check`, { answer: ans }),
+  adminUploadExplanationImage: (qId, file) => {
+    const fd = new FormData(); fd.append("file", file);
+    return upload(`/api/admin/questions/${qId}/image`, fd);
+  },
+  adminGenerateSvg:   (qId)        => adm("POST", `/api/admin/questions/${qId}/generate-svg`),
   // Flashcards (student)
   getDecks:           ()            => request("GET",  "/api/flashcards/decks"),
   getStudyCards:      (deckId)      => request("GET",  `/api/flashcards/decks/${deckId}/study`),

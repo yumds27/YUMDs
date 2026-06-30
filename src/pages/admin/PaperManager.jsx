@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../../api";
 import Icon from "../../components/Icon";
 import QuestionImporter from "./QuestionImporter";
@@ -17,8 +17,13 @@ function ConfirmDelete({ label, onConfirm, onCancel }) {
 }
 
 function QuestionForm({ paperId, question, onSave, onCancel }) {
-  const [form, setForm] = useState(question ?? { ...EMPTY_Q, paper_id: paperId });
-  const [saving, setSaving] = useState(false);
+  const [form, setForm]         = useState(question ?? { ...EMPTY_Q, paper_id: paperId });
+  const [saving, setSaving]     = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [svgPreview, setSvgPreview] = useState(question?.explanation_svg ?? null);
+  const [imgKey, setImgKey]     = useState(question?.explanation_image ?? null);
+  const imgRef = useRef(null);
   const set = f => e => setForm(p => ({ ...p, [f]: e.target.value }));
 
   async function handleSubmit(e) {
@@ -34,6 +39,27 @@ function QuestionForm({ paperId, question, onSave, onCancel }) {
       }
     } catch (err) { alert(err.message); }
     finally { setSaving(false); }
+  }
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file || !question?.id) return;
+    setUploading(true);
+    try {
+      await api.adminUploadExplanationImage(question.id, file);
+      setImgKey(`q${question.id}`);
+    } catch (err) { alert(err.message); }
+    finally { setUploading(false); }
+  }
+
+  async function handleGenerateSvg() {
+    if (!question?.id) return;
+    setGenerating(true);
+    try {
+      const res = await api.adminGenerateSvg(question.id);
+      setSvgPreview(res.svg);
+    } catch (err) { alert(err.message); }
+    finally { setGenerating(false); }
   }
 
   return (
@@ -62,8 +88,40 @@ function QuestionForm({ paperId, question, onSave, onCancel }) {
       </div>
       <div className="q-form-field">
         <label className="q-label">Explanation <span style={{ color:"#94a3b8" }}>(optional)</span></label>
-        <textarea className="q-textarea" value={form.explanation ?? ""} onChange={set("explanation")} rows={2} placeholder="Explain the correct answer…" />
+        <textarea className="q-textarea" value={form.explanation ?? ""} onChange={set("explanation")} rows={3} placeholder="Explain the correct answer…" />
       </div>
+
+      {/* Explanation image */}
+      {question?.id && (
+        <div className="q-form-field">
+          <label className="q-label">Explanation image <span style={{ color:"#94a3b8" }}>(optional)</span></label>
+          <div style={{ display:"flex", gap:".5rem", alignItems:"center" }}>
+            <input ref={imgRef} type="file" accept="image/*" style={{ display:"none" }}
+              onChange={handleImageUpload} />
+            <button className="adm-btn adm-btn-ghost" type="button"
+              onClick={() => imgRef.current?.click()} disabled={uploading}>
+              <Icon name="image" size={13} /> {uploading ? "Uploading…" : imgKey ? "Replace image" : "Upload image"}
+            </button>
+            {imgKey && <span style={{ fontSize:".78rem", color:"var(--muted)" }}>Image uploaded</span>}
+          </div>
+        </div>
+      )}
+
+      {/* SVG generation */}
+      {question?.id && (
+        <div className="q-form-field">
+          <label className="q-label">Diagram <span style={{ color:"#94a3b8" }}>(AI-generated SVG)</span></label>
+          <button className="adm-btn adm-btn-ghost" type="button"
+            onClick={handleGenerateSvg} disabled={generating || !form.explanation}>
+            <Icon name="sparkle" size={13} /> {generating ? "Generating…" : svgPreview ? "Regenerate diagram" : "Generate diagram"}
+          </button>
+          {svgPreview && (
+            <div style={{ marginTop:".75rem", border:"1px solid var(--border)", borderRadius:8, padding:".75rem", background:"var(--surface-alt)" }}
+              dangerouslySetInnerHTML={{ __html: svgPreview }} />
+          )}
+        </div>
+      )}
+
       <div className="q-form-actions">
         <button className="adm-btn adm-btn-primary" type="submit" disabled={saving}>{saving ? "Saving…" : question?.id ? "Update" : "Add question"}</button>
         <button className="adm-btn adm-btn-ghost" type="button" onClick={onCancel}>Cancel</button>

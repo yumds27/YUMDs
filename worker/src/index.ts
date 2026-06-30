@@ -19,6 +19,7 @@ import {
 } from "./routes/content";
 import {
   handleGetPapers, handleGetQuestions, handleCheckAnswer,
+  handleGetExplanationImage, handleAdminUploadExplanationImage, handleAdminGenerateSvg,
   handleAdminCreatePaper, handleAdminUpdatePaper, handleAdminDeletePaper,
   handleAdminCreateQuestion, handleAdminUpdateQuestion, handleAdminDeleteQuestion,
   handleAdminListQuestions, handleAdminImportQuestions,
@@ -90,7 +91,8 @@ export default {
     // ── Past papers: student ─────────────────────────────────────────────────
     } else if (pathname === "/api/papers"             && method === "GET")  { response = await handleGetPapers(request, env);
     } else if ((m = pathname.match(/^\/api\/papers\/(\d+)\/questions$/)))     { response = await handleGetQuestions(request, env, m[1]);
-    } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/check$/)))      { response = await handleCheckAnswer(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/check$/)))             { response = await handleCheckAnswer(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/explanation-image$/))) { response = await handleGetExplanationImage(request, env, m[1]);
     // ── Past papers: admin ───────────────────────────────────────────────────
     } else if (pathname === "/api/admin/papers"       && method === "POST") { response = await handleAdminCreatePaper(request, env);
     } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/))          && method === "PUT")    { response = await handleAdminUpdatePaper(request, env, m[1]);
@@ -99,7 +101,9 @@ export default {
     } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/))       && method === "PUT")    { response = await handleAdminUpdateQuestion(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/))       && method === "DELETE") { response = await handleAdminDeleteQuestion(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/questions$/)))                      { response = await handleAdminListQuestions(request, env, m[1]);
-    } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/import-questions$/)) && method === "POST") { response = await handleAdminImportQuestions(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/import-questions$/))  && method === "POST") { response = await handleAdminImportQuestions(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)\/image$/))          && method === "POST") { response = await handleAdminUploadExplanationImage(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)\/generate-svg$/))   && method === "POST") { response = await handleAdminGenerateSvg(request, env, m[1]);
     // ── Flashcards: student ──────────────────────────────────────────────────
     } else if (pathname === "/api/flashcards/decks"                                    && method === "GET")  { response = await handleGetDecks(request, env);
     } else if ((m = pathname.match(/^\/api\/flashcards\/decks\/(\d+)\/study$/)))                            { response = await handleGetStudyCards(request, env, m[1]);

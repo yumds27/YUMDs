@@ -39,10 +39,96 @@ export async function handleCheckAnswer(request: Request, env: Env, questionId: 
   if (!student) return json({ error: "unauthorized" }, { status: 401 });
   const { answer } = await request.json() as { answer?: string };
   if (!answer) return json({ error: "answer required" }, { status: 400 });
-  const row = await env.DB.prepare("SELECT correct, explanation FROM questions WHERE id=?")
-    .bind(Number(questionId)).first<{ correct: string; explanation: string | null }>();
+  const row = await env.DB.prepare(
+    "SELECT correct, explanation, explanation_image, explanation_svg FROM questions WHERE id=?"
+  ).bind(Number(questionId)).first<{
+    correct: string; explanation: string | null;
+    explanation_image: string | null; explanation_svg: string | null;
+  }>();
   if (!row) return json({ error: "not found" }, { status: 404 });
-  return json({ correct: row.correct, explanation: row.explanation, isCorrect: answer === row.correct });
+  return json({
+    correct: row.correct,
+    explanation: row.explanation,
+    explanation_image: row.explanation_image ?? null,
+    explanation_svg: row.explanation_svg ?? null,
+    isCorrect: answer === row.correct,
+  });
+}
+
+// Serve explanation image from R2
+export async function handleGetExplanationImage(request: Request, env: Env, questionId: string): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const row = await env.DB.prepare("SELECT explanation_image FROM questions WHERE id=?")
+    .bind(Number(questionId)).first<{ explanation_image: string | null }>();
+  if (!row?.explanation_image) return json({ error: "not found" }, { status: 404 });
+  const obj = await env.FILES.get(row.explanation_image);
+  if (!obj) return json({ error: "not found" }, { status: 404 });
+  return new Response(obj.body, {
+    headers: { "content-type": obj.httpMetadata?.contentType ?? "image/jpeg", "cache-control": "public, max-age=86400" },
+  });
+}
+
+// Admin: upload explanation image
+export async function handleAdminUploadExplanationImage(request: Request, env: Env, questionId: string): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  const formData = await request.formData();
+  const file = formData.get("file") as File | null;
+  if (!file) return json({ error: "file required" }, { status: 400 });
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const key = `question-images/q${questionId}.${ext}`;
+  await env.FILES.put(key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type || "image/jpeg" },
+  });
+  await env.DB.prepare("UPDATE questions SET explanation_image=? WHERE id=?")
+    .bind(key, Number(questionId)).run();
+  return json({ ok: true });
+}
+
+// Admin: generate SVG diagram via Claude
+export async function handleAdminGenerateSvg(request: Request, env: Env, questionId: string): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  if (!env.CLAUDE_API_KEY) return json({ error: "Claude API key not configured" }, { status: 503 });
+  const row = await env.DB.prepare("SELECT body, explanation FROM questions WHERE id=?")
+    .bind(Number(questionId)).first<{ body: string; explanation: string | null }>();
+  if (!row) return json({ error: "not found" }, { status: 404 });
+
+  const prompt = `You are a medical illustrator. Generate a clean, educational SVG diagram (viewBox="0 0 420 280") that visually illustrates the key anatomical or physiological concept in the question below.
+
+Rules:
+- Output ONLY the SVG element, starting with <svg and ending with </svg>
+- Use simple shapes: rect, circle, ellipse, path, line, text
+- Include clear text labels for anatomical structures
+- Use a white or transparent background
+- Use professional colors (muted, not garish)
+- Keep it simple and educational, not decorative
+
+Question: ${row.body}
+Explanation: ${row.explanation ?? "(no explanation)"}`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": env.CLAUDE_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2048,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  const data = await res.json() as any;
+  const text = data.content?.[0]?.text ?? "";
+  const match = text.match(/<svg[\s\S]*?<\/svg>/i);
+  if (!match) return json({ error: "generation failed" }, { status: 500 });
+  const svg = match[0];
+  await env.DB.prepare("UPDATE questions SET explanation_svg=? WHERE id=?")
+    .bind(svg, Number(questionId)).run();
+  return json({ svg });
 }
 
 // ── Admin ─────────────────────────────────────────────────────
