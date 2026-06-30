@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "./api";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import HomePage from "./pages/HomePage";
 import ContentBrowser from "./pages/ContentBrowser";
 import PastPapers from "./pages/PastPapers";
 import Flashcards from "./pages/Flashcards";
@@ -19,6 +20,7 @@ function getInitialPage() {
 }
 
 const NAV = [
+  { id: "home",        icon: "home",       label: "Home" },
   { id: "library",     icon: "library",    label: "Library" },
   { id: "past-papers", icon: "papers",     label: "Past Papers" },
   { id: "flashcards",  icon: "flashcards", label: "Flashcards" },
@@ -28,7 +30,7 @@ const NAV = [
 function StudentApp() {
   const [student, setStudent] = useState(null);
   const [page, setPage] = useState(getInitialPage);
-  const [activeNav, setActiveNav] = useState("library");
+  const [activeNav, setActiveNav] = useState("home");
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -93,7 +95,12 @@ function StudentApp() {
       </aside>
 
       <div className="main">
-        {activeNav === "library" ? (
+        {activeNav === "home" ? (
+          <>
+            <div className="topbar"><span className="topbar-title">Home</span></div>
+            <div className="page-content"><HomePage student={student} onNavigate={setActiveNav} /></div>
+          </>
+        ) : activeNav === "library" ? (
           <>
             <div className="topbar"><span className="topbar-title">Library</span></div>
             <div className="page-content"><ContentBrowser student={student} /></div>
