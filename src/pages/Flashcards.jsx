@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../api";
 import Icon from "../components/Icon";
 
@@ -92,6 +92,26 @@ function StudySession({ deck, onBack }) {
       setSubmitting(false);
     }
   }, [cards, idx, submitting]);
+
+  // Keyboard shortcuts (stable ref pattern)
+  const handlersRef = useRef({});
+  handlersRef.current = { handleRate, flipped, setFlipped, submitting };
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      const { handleRate, flipped, setFlipped, submitting } = handlersRef.current;
+      const key = e.key;
+      if ((key === " " || key === "Enter") && !flipped) { e.preventDefault(); setFlipped(true); return; }
+      if (!flipped || submitting) return;
+      if (key === "1") handleRate(1);
+      else if (key === "2") handleRate(2);
+      else if (key === "3") handleRate(3);
+      else if (key === "4") handleRate(4);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   if (loading) return <div className="fc-loading">Loading cards…</div>;
   if (error)   return <div className="fc-error">{error}</div>;

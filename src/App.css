@@ -430,11 +430,95 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 }
 .uw-explanation-svg svg { max-width: 100%; height: auto; }
 
-/* Bottom navigation bar */
+/* Two-column body */
+.uw-body { flex: 1; display: flex; overflow: hidden; }
+
+/* Left: question navigator */
+.uw-nav-panel {
+  width: 210px; flex-shrink: 0;
+  background: #111827; overflow-y: auto;
+  padding: 1rem .875rem;
+  display: flex; flex-direction: column; gap: .875rem;
+}
+.uw-nav-panel-title { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.35); }
+.uw-nav-dots { display: flex; flex-wrap: wrap; gap: .3rem; }
+.uw-nav-dot {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1.5px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  cursor: pointer; font-size: .72rem; font-weight: 700;
+  color: rgba(255,255,255,.45);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .1s;
+}
+.uw-nav-dot:hover { background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); }
+.uw-nav-dot.dot-current  { background: #fff; color: #162040; border-color: #fff; }
+.uw-nav-dot.dot-answered { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.25); color: rgba(255,255,255,.7); }
+.uw-nav-dot.dot-correct  { background: rgba(22,163,74,.25); border-color: #4ade80; color: #4ade80; }
+.uw-nav-dot.dot-wrong    { background: rgba(220,38,38,.2);  border-color: #f87171; color: #f87171; }
+.uw-nav-dot.dot-marked   { outline: 2px solid #f59e0b; outline-offset: 1px; }
+.uw-nav-legend { margin-top: auto; padding-top: .75rem; border-top: 1px solid rgba(255,255,255,.08); display: flex; flex-direction: column; gap: .3rem; }
+.uw-legend-row { display: flex; align-items: center; gap: .4rem; font-size: .7rem; color: rgba(255,255,255,.4); }
+
+/* Right: question content */
+.uw-content {
+  flex: 1; overflow-y: auto;
+  background: #f8f9fa;
+  padding: 1.75rem 2.5rem; padding-bottom: 80px;
+}
+
+/* Paper name in topbar */
+.uw-paper-name { font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+.uw-mark-label { }
+
+/* Item counter */
+.uw-item-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: #94a3b8; margin-bottom: .875rem; }
+
+/* Question stem */
+.uw-question-stem { font-size: .975rem; line-height: 1.75; color: #1e293b; margin-bottom: 1.5rem; white-space: pre-wrap; }
+
+/* Flat choices — no card borders */
+.uw-choices { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
+.uw-choice {
+  display: flex; align-items: flex-start; gap: .875rem;
+  padding: .8rem 1rem;
+  border: none; border-bottom: 1px solid #e9ecef; border-left: 3px solid transparent;
+  background: transparent; cursor: pointer; width: 100%; text-align: left;
+  transition: background .1s, border-left-color .1s;
+}
+.uw-choice:first-child { border-top: 1px solid #e9ecef; }
+.uw-choice:hover:not(:disabled) { background: #f0f4ff; }
+.uw-choice:disabled { cursor: default; }
+.uw-choice-letter { font-size: .82rem; font-weight: 700; color: #64748b; min-width: 1.5rem; flex-shrink: 0; line-height: 1.5; }
+.uw-choice-text   { font-size: .9rem; color: #1e293b; line-height: 1.5; flex: 1; }
+
+.uw-choice.choice-selected              { background: #eef2ff; border-left-color: #162040; }
+.uw-choice.choice-selected .uw-choice-letter { color: #162040; font-weight: 800; }
+.uw-choice.choice-correct               { background: #f0fdf4; border-left-color: #16a34a; }
+.uw-choice.choice-correct .uw-choice-letter  { color: #16a34a; }
+.uw-choice.choice-wrong                 { background: #fef2f2; border-left-color: #dc2626; }
+.uw-choice.choice-wrong .uw-choice-letter    { color: #dc2626; }
+
+/* Per-question submit button */
+.uw-submit-q-btn {
+  display: inline-block; margin-top: .875rem;
+  padding: .55rem 1.5rem; background: #162040; color: #fff;
+  border: none; border-radius: 8px; font-size: .875rem; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.uw-submit-q-btn:hover:not(:disabled) { background: #1e2d56; }
+.uw-submit-q-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* End exam button */
+.uw-end-btn { padding: .3rem .85rem; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.uw-end-btn:hover:not(:disabled) { background: #b91c1c; }
+.uw-end-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Bottom nav — flex child (not fixed) */
 .uw-bottombar {
-  position: fixed; bottom: 0; left: 0; right: 0; height: 52px;
+  height: 52px; flex-shrink: 0;
   background: var(--navy); display: flex; align-items: center;
-  justify-content: space-between; padding: 0 1rem; z-index: 301;
+  justify-content: space-between; padding: 0 1rem;
 }
 .uw-nav-btn {
   display: flex; align-items: center; gap: .4rem;
@@ -1399,3 +1483,81 @@ html.dark .about-title { color: #93c5fd; }
   display: flex; justify-content: flex-end;
   padding: .75rem 1.25rem; border-top: 1px solid var(--border);
 }
+
+/* ── Dark mode: new UWorld layout ──────────────────────────── */
+html.dark .uw-content { background: #0f1117; }
+html.dark .uw-question-stem { color: #e2e8f0; }
+html.dark .uw-item-label { color: #64748b; }
+html.dark .uw-choice { border-bottom-color: rgba(255,255,255,.06); }
+html.dark .uw-choice:first-child { border-top-color: rgba(255,255,255,.06); }
+html.dark .uw-choice:hover:not(:disabled) { background: rgba(255,255,255,.04); }
+html.dark .uw-choice-text { color: #e2e8f0; }
+html.dark .uw-choice-letter { color: #64748b; }
+html.dark .uw-choice.choice-selected { background: rgba(22,32,64,.5); border-left-color: #93c5fd; }
+html.dark .uw-choice.choice-selected .uw-choice-letter { color: #93c5fd; }
+html.dark .uw-choice.choice-correct { background: rgba(21,128,61,.15); }
+html.dark .uw-choice.choice-correct .uw-choice-letter { color: #4ade80; }
+html.dark .uw-choice.choice-wrong { background: rgba(185,28,28,.15); }
+html.dark .uw-choice.choice-wrong .uw-choice-letter { color: #f87171; }
+html.dark .uw-status-bar.correct { background: rgba(21,128,61,.15); border-color: #4ade80; color: #4ade80; }
+html.dark .uw-status-bar.wrong   { background: rgba(185,28,28,.15); border-color: #f87171; color: #f87171; }
+html.dark .uw-explanation { background: #1c1f2e; border-color: rgba(255,255,255,.08); }
+html.dark .uw-explanation-title { background: rgba(255,255,255,.04); color: #94a3b8; border-color: rgba(255,255,255,.08); }
+html.dark .uw-explanation-text { color: #e2e8f0; }
+html.dark .uw-submit-q-btn { background: #1e2d56; }
+html.dark .uw-submit-q-btn:hover:not(:disabled) { background: #243568; }
+
+/* ── Landing page tagline (no h1 title anymore) ─────────────── */
+.landing-tagline { animation: landingSlideUp .65s .18s cubic-bezier(.2,.8,.2,1) both; }
+
+/* ── Mobile: UWorld session ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .uw-nav-panel { display: none; }
+  .uw-content   { padding: 1.25rem 1rem; padding-bottom: 80px; }
+  .uw-paper-name { max-width: 130px; font-size: .78rem; }
+  .uw-mark-label { display: none; }
+  .uw-item-label { font-size: .7rem; }
+  .uw-question-stem { font-size: .9rem; }
+  .uw-choice { padding: .7rem .75rem; }
+  .uw-choice-text { font-size: .875rem; }
+  .uw-results-banner { gap: 1.25rem; padding: 1rem 1.25rem; }
+  .uw-results-pct { font-size: 1.75rem; }
+  .mode-choice-row { grid-template-columns: 1fr; }
+  .mode-time-note { display: none; }
+}
+
+@media (max-width: 480px) {
+  .uw-topbar { padding: 0 .625rem; gap: .5rem; }
+  .uw-topbar-left { gap: .4rem; }
+  .uw-topbar-right { gap: .4rem; }
+  .uw-timer { font-size: .75rem; }
+  .uw-end-btn { padding: .25rem .6rem; font-size: .75rem; }
+  .uw-nav-btn { padding: .35rem .65rem; font-size: .78rem; }
+  .uw-content { padding: 1rem .75rem; padding-bottom: 80px; }
+  .landing-icon { width: min(380px, 90vw); }
+}
+
+/* ── Mobile: flashcard session ───────────────────────────────── */
+@media (max-width: 640px) {
+  .fc-session { padding: 1rem; gap: 1rem; }
+  .fc-card-wrap { height: 220px; }
+  .fc-card-text { font-size: 1rem; }
+  .fc-rate-btn { min-width: 70px; padding: .6rem .35rem; }
+  .fc-rating-row { gap: .5rem; }
+}
+
+/* ── Mobile: mode select ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .mode-select { padding: .75rem 0 2rem; }
+  .mode-select-card { padding: 1.25rem; gap: 1.25rem; border-radius: 12px; }
+}
+
+/* ── Mobile: general page ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .page-content { padding: 1rem; }
+  .topbar       { padding: 0 1rem; }
+  .stats-row    { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── UWorld nav count ────────────────────────────────────────── */
+.uw-nav-count { font-size: .78rem; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }

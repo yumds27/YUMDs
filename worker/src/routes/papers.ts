@@ -131,6 +131,35 @@ Explanation: ${row.explanation ?? "(no explanation)"}`;
   return json({ svg });
 }
 
+// ── Progress ──────────────────────────────────────────────────
+
+export async function handleRecordSession(request: Request, env: Env): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const { paper_id, paper_name, mode, score, total, time_sec } = await request.json() as any;
+  if (!paper_id || !mode || score === undefined || !total) {
+    return json({ error: "paper_id, mode, score, total required" }, { status: 400 });
+  }
+  const { meta } = await env.DB.prepare(`
+    INSERT INTO student_paper_sessions (student_id, paper_id, paper_name, mode, score, total, time_sec)
+    VALUES (?,?,?,?,?,?,?)
+  `).bind(student.sub, paper_id, paper_name ?? null, mode, score, total, time_sec ?? 0).run();
+  return json({ id: meta.last_row_id }, { status: 201 });
+}
+
+export async function handleGetSessions(request: Request, env: Env): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const { results } = await env.DB.prepare(`
+    SELECT id, paper_id, paper_name, mode, score, total, time_sec, completed_at
+    FROM student_paper_sessions
+    WHERE student_id = ?
+    ORDER BY completed_at DESC
+    LIMIT 100
+  `).bind(student.sub).all();
+  return json({ sessions: results });
+}
+
 // ── Admin ─────────────────────────────────────────────────────
 
 export async function handleAdminCreatePaper(request: Request, env: Env): Promise<Response> {

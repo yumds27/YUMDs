@@ -27,7 +27,7 @@ function fmtTime(s) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  if (h > 0) return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
   return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
 }
 
@@ -90,7 +90,6 @@ function ModeSelect({ paper, allQuestions, onStart, onBack }) {
   const [mode, setMode]   = useState("tutor");
   const max               = Math.min(allQuestions.length, 40);
   const [count, setCount] = useState(Math.min(max, 20));
-  const timeMins          = count;
 
   return (
     <div className="mode-select">
@@ -109,12 +108,12 @@ function ModeSelect({ paper, allQuestions, onStart, onBack }) {
             <button className={`mode-choice${mode === "tutor" ? " selected" : ""}`} onClick={() => setMode("tutor")}>
               <div className="mode-choice-icon" style={{ background:"#eff6ff", color:"#2563eb" }}><Icon name="check" size={24} /></div>
               <div className="mode-choice-name">Tutor Mode</div>
-              <div className="mode-choice-desc">Instant feedback after each answer, with explanations</div>
+              <div className="mode-choice-desc">Instant feedback after each answer</div>
             </button>
             <button className={`mode-choice${mode === "exam" ? " selected" : ""}`} onClick={() => setMode("exam")}>
               <div className="mode-choice-icon" style={{ background:"#fff7ed", color:"#ea580c" }}><Icon name="clock" size={24} /></div>
               <div className="mode-choice-name">Exam Mode</div>
-              <div className="mode-choice-desc">Timed count-up, no hints — submit at the end to see results</div>
+              <div className="mode-choice-desc">Timed — submit each question to reveal</div>
             </button>
           </div>
         </div>
@@ -129,8 +128,7 @@ function ModeSelect({ paper, allQuestions, onStart, onBack }) {
           </div>
           {mode === "exam" && (
             <div className="mode-time-note">
-              <Icon name="clock" size={13} />
-              Count-up timer · {count} question{count !== 1 ? "s" : ""}
+              <Icon name="clock" size={13} /> Count-up timer · {count} question{count !== 1 ? "s" : ""}
             </div>
           )}
         </div>
@@ -144,7 +142,7 @@ function ModeSelect({ paper, allQuestions, onStart, onBack }) {
   );
 }
 
-// ── UWorld-style single-question session ──────────────────────────────────────
+// ── UWorld-style session ──────────────────────────────────────────────────────
 function QuestionSession({ paper, questions, mode, onBack }) {
   const [idx, setIdx]           = useState(0);
   const [answers, setAnswers]   = useState({});
@@ -152,59 +150,152 @@ function QuestionSession({ paper, questions, mode, onBack }) {
   const [marked, setMarked]     = useState(new Set());
   const [submitted, setSubmitted]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [showMap, setShowMap]   = useState(false);
   const [elapsed, setElapsed]   = useState(0);
   const submittingRef           = useRef(false);
+  const sessionRecordedRef      = useRef(false);
+  const elapsedRef              = useRef(0);
+  const handlersRef             = useRef({});
 
-  // Count-up timer
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
+
+  // Timer stops when exam is ended
   useEffect(() => {
+    if (submitted) return;
     const id = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [submitted]);
 
   const q        = questions[idx];
   const opts     = LETTERS.filter(l => q[`option_${l}`]);
   const selected = answers[q.id];
   const res      = revealed[q.id];
   const isMarked = marked.has(q.id);
-  const reviewMode = mode === "exam" && submitted;
+  const totalCorrect  = Object.values(revealed).filter(r => r.isCorrect).length;
+  const totalAnswered = Object.keys(answers).length;
+  const totalRevealed = Object.keys(revealed).length;
+  const allRevealed   = totalRevealed >= questions.length;
 
   function toggleMark() {
     setMarked(m => { const n = new Set(m); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; });
   }
 
+  async function recordSession(rev) {
+    if (sessionRecordedRef.current) return;
+    sessionRecordedRef.current = true;
+    const score = Object.values(rev).filter(r => r.isCorrect).length;
+    try {
+      await api.recordPaperSession({
+        paper_id: paper.id,
+        paper_name: paper.name,
+        mode,
+        score,
+        total: questions.length,
+        time_sec: elapsedRef.current,
+      });
+    } catch {}
+  }
+
   async function handleSelect(letter) {
-    if (reviewMode || (mode === "tutor" && res) || (mode === "exam" && submitted)) return;
+    if (revealed[q.id] || submitted || submittingRef.current) return;
+    if (!opts.includes(letter)) return;
     setAnswers(a => ({ ...a, [q.id]: letter }));
     if (mode === "tutor") {
+      submittingRef.current = true;
+      setSubmitting(true);
       try {
         const r = await api.checkAnswer(q.id, letter);
-        setRevealed(rv => ({ ...rv, [q.id]: r }));
+        setRevealed(rv => {
+          const newRv = { ...rv, [q.id]: r };
+          if (Object.keys(newRv).length >= questions.length) recordSession(newRv);
+          return newRv;
+        });
       } catch {}
+      finally { setSubmitting(false); submittingRef.current = false; }
     }
   }
 
-  async function handleSubmit() {
-    if (submittingRef.current || submitted) return;
+  async function handleSubmitQuestion() {
+    const qId  = q.id;
+    const ans  = answers[qId];
+    if (!ans || revealed[qId] || submittingRef.current) return;
     submittingRef.current = true;
     setSubmitting(true);
-    const nr = {};
-    await Promise.all(questions.map(async q => {
-      const chosen = answers[q.id];
-      if (!chosen) { nr[q.id] = { correct: null, isCorrect: false, explanation: null }; return; }
-      try { nr[q.id] = await api.checkAnswer(q.id, chosen); }
-      catch { nr[q.id] = { correct: null, isCorrect: false, explanation: null }; }
+    try {
+      const r = await api.checkAnswer(qId, ans);
+      setRevealed(rv => ({ ...rv, [qId]: r }));
+    } catch {}
+    finally { setSubmitting(false); submittingRef.current = false; }
+  }
+
+  async function handleEndExam() {
+    const pending = questions.filter(q2 => answers[q2.id] && !revealed[q2.id]);
+    const newRev  = { ...revealed };
+    await Promise.all(pending.map(async q2 => {
+      try { newRev[q2.id] = await api.checkAnswer(q2.id, answers[q2.id]); }
+      catch { newRev[q2.id] = { correct: null, isCorrect: false, explanation: null }; }
     }));
-    setRevealed(nr);
+    for (const q2 of questions) {
+      if (!newRev[q2.id]) newRev[q2.id] = { correct: null, isCorrect: false, explanation: null };
+    }
+    setRevealed(newRev);
     setSubmitted(true);
-    setSubmitting(false);
-    submittingRef.current = false;
+    await recordSession(newRev);
     setIdx(0);
   }
 
-  const totalAnswered = Object.keys(answers).length;
-  const totalCorrect  = Object.values(revealed).filter(r => r.isCorrect).length;
-  const progress      = (idx + 1) / questions.length;
+  // Keep handlers ref fresh for keyboard shortcut listener
+  handlersRef.current = { handleSelect, handleSubmitQuestion, toggleMark };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const KEY_L = {
+      a:"a", A:"a", "1":"a",
+      b:"b", B:"b", "2":"b",
+      c:"c", C:"c", "3":"c",
+      d:"d", D:"d", "4":"d",
+      e:"e", E:"e", "5":"e",
+    };
+    function onKey(e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      const key = e.key;
+      if (key === "ArrowLeft"  || key === "p" || key === "P") { setIdx(i => Math.max(0, i - 1)); return; }
+      if (key === "ArrowRight" || key === "n" || key === "N") { setIdx(i => Math.min(questions.length - 1, i + 1)); return; }
+      if (key === "m" || key === "M") { handlersRef.current.toggleMark(); return; }
+      const letter = KEY_L[key];
+      if (letter) { handlersRef.current.handleSelect(letter); return; }
+      if (key === "Enter") handlersRef.current.handleSubmitQuestion();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [questions.length]);
+
+  // ── helpers ──
+  function dotCls(i) {
+    const q2 = questions[i];
+    const r2 = revealed[q2.id];
+    const a2 = answers[q2.id];
+    let cls = "uw-nav-dot";
+    if (r2) cls += r2.isCorrect ? " dot-correct" : " dot-wrong";
+    else if (a2) cls += " dot-answered";
+    if (marked.has(q2.id)) cls += " dot-marked";
+    if (i === idx) cls += " dot-current";
+    return cls;
+  }
+
+  function choiceCls(l) {
+    let cls = "uw-choice";
+    const r = revealed[q.id];
+    if (r) {
+      if (l === r.correct)            cls += " choice-correct";
+      else if (l === selected && !r.isCorrect) cls += " choice-wrong";
+    } else if (l === selected) {
+      cls += " choice-selected";
+    }
+    return cls;
+  }
+
+  const isDisabled = !!(res || submitted);
+  const showScore  = submitted || (mode === "tutor" && allRevealed);
 
   return (
     <div className="uw-session">
@@ -212,23 +303,20 @@ function QuestionSession({ paper, questions, mode, onBack }) {
       <div className="uw-topbar">
         <div className="uw-topbar-left">
           <button className="uw-back-btn" onClick={onBack}><Icon name="arrowLeft" size={14} /></button>
-          <div className="uw-item-count">
-            <span className="uw-item-n">Item {idx + 1}</span>
-            <span className="uw-item-of">of {questions.length}</span>
-          </div>
+          <span className="uw-paper-name">{paper.name}</span>
           <button className={`uw-mark-btn${isMarked ? " marked" : ""}`} onClick={toggleMark}>
             <Icon name="mark" size={13} />
-            {isMarked ? "Marked" : "Mark"}
+            <span className="uw-mark-label">{isMarked ? "Marked" : "Mark"}</span>
           </button>
         </div>
         <div className="uw-topbar-right">
           <div className="uw-timer"><Icon name="clock" size={13} />{fmtTime(elapsed)}</div>
           {mode === "exam" && !submitted && (
-            <button className="uw-submit-btn" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Checking…" : "Submit"}
+            <button className="uw-end-btn" onClick={handleEndExam} disabled={submitting}>
+              End Exam
             </button>
           )}
-          {reviewMode && (
+          {showScore && (
             <div className="uw-score-badge">
               {totalCorrect}/{questions.length} · {Math.round(totalCorrect / questions.length * 100)}%
             </div>
@@ -238,41 +326,74 @@ function QuestionSession({ paper, questions, mode, onBack }) {
 
       {/* Progress bar */}
       <div className="uw-progress-bar">
-        <div className="uw-progress-fill" style={{ width: `${progress * 100}%` }} />
+        <div className="uw-progress-fill" style={{ width: `${(totalRevealed / questions.length) * 100}%` }} />
       </div>
 
-      {/* Scrollable question */}
-      <div className="uw-scroll">
-        <div className="uw-question-area">
+      {/* Two-column body */}
+      <div className="uw-body">
+        {/* Left: question navigator */}
+        <div className="uw-nav-panel">
+          <div className="uw-nav-panel-title">Questions</div>
+          <div className="uw-nav-dots">
+            {questions.map((_, i) => (
+              <button key={i} className={dotCls(i)} onClick={() => setIdx(i)}>{i + 1}</button>
+            ))}
+          </div>
+          <div className="uw-nav-legend">
+            <div className="uw-legend-row"><span className="legend-dot dot-correct" /> Correct</div>
+            <div className="uw-legend-row"><span className="legend-dot dot-wrong" /> Wrong</div>
+            <div className="uw-legend-row"><span className="legend-dot dot-answered" /> Answered</div>
+            <div className="uw-legend-row"><span className="legend-dot dot-marked" style={{ outline:"2px solid #f59e0b", outlineOffset:"1px" }} /> Marked</div>
+          </div>
+        </div>
+
+        {/* Right: question content */}
+        <div className="uw-content">
+          {/* Score banner */}
+          {showScore && (
+            <div className="uw-results-banner" style={{ marginBottom:"1.5rem", borderRadius:10 }}>
+              <div>
+                <div className="uw-results-pct">{Math.round(totalCorrect / questions.length * 100)}%</div>
+                <div className="uw-results-label">Score</div>
+              </div>
+              <div>
+                <div className="uw-results-pct" style={{ fontSize:"1.5rem" }}>{totalCorrect}/{questions.length}</div>
+                <div className="uw-results-label">Correct</div>
+              </div>
+              <div>
+                <div className="uw-results-pct" style={{ fontSize:"1.5rem" }}>{fmtTime(elapsed)}</div>
+                <div className="uw-results-label">Time</div>
+              </div>
+            </div>
+          )}
+
+          {/* Item counter */}
+          <div className="uw-item-label">Item {idx + 1} of {questions.length}</div>
+
+          {/* Question stem */}
           <div className="uw-question-stem">{q.body}</div>
 
-          <div className="uw-options">
-            {opts.map(l => {
-              let cls = "uw-option";
-              if (res || reviewMode) {
-                const r = revealed[q.id];
-                if (r?.correct && l === r.correct)       cls += " uw-opt-correct";
-                else if (l === selected && r && !r.isCorrect) cls += " uw-opt-wrong";
-              } else if (l === selected) {
-                cls += " uw-opt-selected";
-              }
-              const radioFilled = cls.includes("uw-opt-correct") || cls.includes("uw-opt-wrong") || cls.includes("uw-opt-selected");
-              return (
-                <button key={l} className={cls}
-                  onClick={() => handleSelect(l)}
-                  disabled={!!(res || reviewMode || (mode === "exam" && submitted))}>
-                  <div className="uw-opt-radio">
-                    {radioFilled && <div style={{ width:8, height:8, borderRadius:"50%", background:"currentColor" }} />}
-                  </div>
-                  <span className="uw-opt-letter">{l.toUpperCase()}.</span>
-                  <span className="uw-opt-text">{q[`option_${l}`]}</span>
-                </button>
-              );
-            })}
+          {/* Flat choices */}
+          <div className="uw-choices">
+            {opts.map(l => (
+              <button key={l} className={choiceCls(l)}
+                onClick={() => handleSelect(l)}
+                disabled={isDisabled}>
+                <span className="uw-choice-letter">{l.toUpperCase()}.</span>
+                <span className="uw-choice-text">{q[`option_${l}`]}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Status + Explanation (tutor after answer, or review mode) */}
-          {(res || reviewMode) && revealed[q.id] && (() => {
+          {/* Per-question submit (exam mode) */}
+          {mode === "exam" && !submitted && answers[q.id] && !revealed[q.id] && (
+            <button className="uw-submit-q-btn" onClick={handleSubmitQuestion} disabled={submitting}>
+              {submitting ? "Checking…" : "Submit Answer"}
+            </button>
+          )}
+
+          {/* Status + Explanation */}
+          {revealed[q.id] && (() => {
             const r = revealed[q.id];
             return (
               <>
@@ -284,18 +405,15 @@ function QuestionSession({ paper, questions, mode, onBack }) {
                       : `Incorrect${r.correct ? ` — Correct answer: ${r.correct.toUpperCase()}` : ""}`}
                   </div>
                 </div>
-
                 {(r.explanation || r.explanation_image || r.explanation_svg) && (
                   <div className="uw-explanation">
                     <div className="uw-explanation-title">Explanation</div>
                     {r.explanation_svg && (
-                      <div className="uw-explanation-svg"
-                        dangerouslySetInnerHTML={{ __html: r.explanation_svg }} />
+                      <div className="uw-explanation-svg" dangerouslySetInnerHTML={{ __html: r.explanation_svg }} />
                     )}
                     {r.explanation_image && (
                       <img className="uw-explanation-image"
-                        src={`/api/questions/${q.id}/explanation-image`}
-                        alt="Explanation diagram" />
+                        src={`/api/questions/${q.id}/explanation-image`} alt="Explanation diagram" />
                     )}
                     {r.explanation && (
                       <div className="uw-explanation-text">{r.explanation}</div>
@@ -313,62 +431,25 @@ function QuestionSession({ paper, questions, mode, onBack }) {
         <button className="uw-nav-btn"
           onClick={() => setIdx(i => Math.max(0, i - 1))}
           disabled={idx === 0}>
-          <Icon name="arrowLeft" size={14} /> Previous
+          <Icon name="arrowLeft" size={14} /> Prev
         </button>
-
-        <button className="uw-qmap-btn" onClick={() => setShowMap(true)}>
-          {totalAnswered}/{questions.length} answered
-        </button>
-
+        <span className="uw-nav-count">{totalAnswered}/{questions.length} answered</span>
         <button className="uw-nav-btn"
           onClick={() => setIdx(i => Math.min(questions.length - 1, i + 1))}
           disabled={idx === questions.length - 1}>
           Next <Icon name="arrowLeft" size={14} style={{ transform:"rotate(180deg)" }} />
         </button>
       </div>
-
-      {/* Question map */}
-      {showMap && (
-        <div className="uw-map-overlay" onClick={() => setShowMap(false)}>
-          <div className="uw-map-panel" onClick={e => e.stopPropagation()}>
-            <div className="uw-map-header">Question Navigator</div>
-            <div className="uw-map-grid">
-              {questions.map((q2, i) => {
-                const r2  = revealed[q2.id];
-                const ans = answers[q2.id];
-                let cls   = "uw-map-dot";
-                if (r2)       cls += r2.isCorrect ? " dot-correct" : " dot-wrong";
-                else if (ans) cls += " dot-answered";
-                if (marked.has(q2.id)) cls += " dot-marked";
-                if (i === idx)         cls += " dot-current";
-                return (
-                  <button key={q2.id} className={cls}
-                    onClick={() => { setIdx(i); setShowMap(false); }}>
-                    {i + 1}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="uw-map-legend">
-              <span className="legend-dot dot-correct" /> Correct &nbsp;
-              <span className="legend-dot dot-wrong" /> Wrong &nbsp;
-              <span className="legend-dot dot-answered" /> Answered &nbsp;
-              <span className="legend-dot" /> Unanswered &nbsp;
-              <span className="legend-dot dot-marked" /> Marked
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function PastPapers({ student }) {
-  const [year, setYear]     = useState(student.current_year ?? student.year ?? 1);
-  const [view, setView]     = useState("list");
-  const [paper, setPaper]   = useState(null);
-  const [allQs, setAllQs]   = useState([]);
+  const [year, setYear]             = useState(student.current_year ?? student.year ?? 1);
+  const [view, setView]             = useState("list");
+  const [paper, setPaper]           = useState(null);
+  const [allQs, setAllQs]           = useState([]);
   const [sessionQs, setSessionQs]   = useState([]);
   const [sessionMode, setSessionMode] = useState("tutor");
   const [loadingQs, setLoadingQs]   = useState(false);

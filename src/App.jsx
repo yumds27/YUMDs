@@ -8,6 +8,7 @@ import ContentBrowser from "./pages/ContentBrowser";
 import PastPapers from "./pages/PastPapers";
 import Flashcards from "./pages/Flashcards";
 import AdminPanel from "./pages/admin/AdminPanel";
+import Progress from "./pages/Progress";
 import Icon from "./components/Icon";
 import { toggleTheme } from "./lib/theme";
 import "./App.css";
@@ -37,7 +38,8 @@ const NAV = [
   { id: "library",     icon: "library",    label: "Library" },
   { id: "past-papers", icon: "papers",     label: "Past Papers" },
   { id: "flashcards",  icon: "flashcards", label: "Flashcards" },
-  { id: "about",       icon: "info",       label: "About" },
+  { id: "about",       icon: "award",      label: "About" },
+  { id: "progress",    icon: "progress",   label: "Progress" },
   { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor", badge: "Soon" },
 ];
 
@@ -142,6 +144,8 @@ function StudentApp() {
             <Flashcards />
           ) : activeNav === "about" ? (
             <AboutPage />
+          ) : activeNav === "progress" ? (
+            <Progress student={student} />
           ) : (
             <div className="coming-soon">
               <div className="cs-icon"><Icon name={activeItem?.icon} size={48} /></div>

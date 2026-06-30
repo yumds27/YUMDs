@@ -24,7 +24,7 @@ const NAV = [
   { id: "papers",     icon: "papers",     label: "Past Papers" },
   { id: "flashcards", icon: "decks",      label: "Flashcards" },
   { id: "students",   icon: "students",   label: "Students" },
-  { id: "about",      icon: "info",       label: "About Page" },
+  { id: "about",      icon: "award",      label: "About Page" },
 ];
 
 export default function AdminPanel() {

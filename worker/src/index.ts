@@ -20,6 +20,7 @@ import {
 import {
   handleGetPapers, handleGetQuestions, handleCheckAnswer,
   handleGetExplanationImage, handleAdminUploadExplanationImage, handleAdminGenerateSvg,
+  handleRecordSession, handleGetSessions,
   handleAdminCreatePaper, handleAdminUpdatePaper, handleAdminDeletePaper,
   handleAdminCreateQuestion, handleAdminUpdateQuestion, handleAdminDeleteQuestion,
   handleAdminListQuestions, handleAdminImportQuestions,
@@ -93,6 +94,9 @@ export default {
     } else if ((m = pathname.match(/^\/api\/papers\/(\d+)\/questions$/)))     { response = await handleGetQuestions(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/check$/)))             { response = await handleCheckAnswer(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/explanation-image$/))) { response = await handleGetExplanationImage(request, env, m[1]);
+    // ── Progress ─────────────────────────────────────────────────────────────
+    } else if (pathname === "/api/progress/paper-session" && method === "POST") { response = await handleRecordSession(request, env);
+    } else if (pathname === "/api/progress/sessions"      && method === "GET")  { response = await handleGetSessions(request, env);
     // ── Past papers: admin ───────────────────────────────────────────────────
     } else if (pathname === "/api/admin/papers"       && method === "POST") { response = await handleAdminCreatePaper(request, env);
     } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/))          && method === "PUT")    { response = await handleAdminUpdatePaper(request, env, m[1]);

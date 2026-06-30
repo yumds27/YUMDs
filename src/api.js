@@ -64,6 +64,9 @@ export const api = {
   getPapers:          (year)       => request("GET", `/api/papers?year=${year}`),
   getPaperQuestions:  (paperId)    => request("GET", `/api/papers/${paperId}/questions`),
   checkAnswer:        (qId, ans)   => request("POST", `/api/questions/${qId}/check`, { answer: ans }),
+  // Progress
+  recordPaperSession: (body)   => request("POST", "/api/progress/paper-session", body),
+  getProgressSessions: ()      => request("GET",  "/api/progress/sessions"),
   adminUploadExplanationImage: (qId, file) => {
     const fd = new FormData(); fd.append("file", file);
     return upload(`/api/admin/questions/${qId}/image`, fd);

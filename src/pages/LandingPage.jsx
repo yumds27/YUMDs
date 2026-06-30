@@ -43,10 +43,7 @@ export default function LandingPage({ onNavigate }) {
         <div className="landing-icon">
           <img src="/logo.png" alt="Yarmouk University" />
         </div>
-        <div className="landing-brand">
-          <h1 className="landing-title">YUMD<span>s</span></h1>
-          <p className="landing-tagline">Yarmouk University Medical Resources &amp; Files</p>
-        </div>
+        <p className="landing-tagline">Yarmouk University Medical Resources &amp; Files</p>
       </div>
 
       <div className="landing-cards">
