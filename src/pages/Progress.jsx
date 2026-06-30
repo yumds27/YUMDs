@@ -333,6 +333,17 @@ export default function Progress({ onNavigate }) {
       .catch(() => {});
   }, []);
 
+  // Must be before any early returns (Rules of Hooks)
+  const filesBySubject = useMemo(() => {
+    const map = new Map();
+    fileProgress.forEach(f => {
+      const k = f.subject_name || "General";
+      if (!map.has(k)) map.set(k, []);
+      map.get(k).push(f);
+    });
+    return [...map.entries()];
+  }, [fileProgress]);
+
   async function openReview(session) {
     setLoadingDetail(true);
     try {
@@ -391,16 +402,6 @@ export default function Progress({ onNavigate }) {
   const totalQs   = sessions.reduce((a, s) => a + s.total, 0);
   const correctQs = sessions.reduce((a, s) => a + s.score, 0);
 
-  // Group file progress by subject
-  const filesBySubject = useMemo(() => {
-    const map = new Map();
-    fileProgress.forEach(f => {
-      const k = f.subject_name || "General";
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(f);
-    });
-    return [...map.entries()];
-  }, [fileProgress]);
 
   return (
     <div>
