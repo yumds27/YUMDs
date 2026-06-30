@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
+import Icon from "../components/Icon";
 
 const BASE = import.meta.env.VITE_API_BASE ?? "https://api.yarmoukmds.com";
 
+function fileIcon(contentType) {
+  if (contentType?.includes("pdf"))   return "filePdf";
+  if (contentType?.includes("image")) return "fileImage";
+  return "file";
+}
 function fileIconClass(contentType) {
-  if (contentType?.includes("pdf")) return "pdf";
+  if (contentType?.includes("pdf"))   return "pdf";
   if (contentType?.includes("image")) return "img";
   return "misc";
-}
-function fileEmoji(contentType) {
-  if (contentType?.includes("pdf"))   return "📄";
-  if (contentType?.includes("image")) return "🖼️";
-  if (contentType?.includes("video")) return "🎬";
-  return "📎";
 }
 function fmtSize(bytes) {
   if (!bytes) return "";
@@ -73,7 +73,6 @@ export default function ContentBrowser({ student }) {
         </div>
 
         <div className="browser-cols">
-          {/* Subjects */}
           <div className="browser-col">
             <div className="col-title">Subjects</div>
             {loading ? <div className="col-empty">Loading…</div>
@@ -87,10 +86,9 @@ export default function ContentBrowser({ student }) {
               ))}
           </div>
 
-          {/* Topics */}
           <div className="browser-col">
             <div className="col-title">Topics</div>
-            {!selectedSubject ? <div className="col-empty">Select a subject →</div>
+            {!selectedSubject ? <div className="col-empty">Select a subject</div>
               : topics.length === 0 ? <div className="col-empty">No topics yet.</div>
               : topics.map(t => (
                 <button key={t.id}
@@ -101,15 +99,14 @@ export default function ContentBrowser({ student }) {
               ))}
           </div>
 
-          {/* Files */}
           <div className="browser-col">
             <div className="col-title">Files</div>
-            {!selectedTopic ? <div className="col-empty">Select a topic →</div>
+            {!selectedTopic ? <div className="col-empty">Select a topic</div>
               : files.length === 0 ? <div className="col-empty">No files yet.</div>
               : files.map(f => (
                 <button key={f.id} className="browser-item" onClick={() => openFile(f)}>
                   <div className={`file-icon-wrap ${fileIconClass(f.content_type)}`}>
-                    {fileEmoji(f.content_type)}
+                    <Icon name={fileIcon(f.content_type)} size={16} />
                   </div>
                   <div className="file-meta">
                     <div className="file-name">{f.name}</div>

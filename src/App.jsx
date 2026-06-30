@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ContentBrowser from "./pages/ContentBrowser";
 import AdminPanel from "./pages/admin/AdminPanel";
+import Icon from "./components/Icon";
 import "./App.css";
 
 const isAdmin = window.location.pathname.startsWith("/admin");
@@ -16,10 +17,10 @@ function getInitialPage() {
 }
 
 const NAV = [
-  { id: "library",     icon: "📚", label: "Library" },
-  { id: "past-papers", icon: "📝", label: "Past Papers",  badge: "Soon" },
-  { id: "flashcards",  icon: "🃏", label: "Flashcards",   badge: "Soon" },
-  { id: "ai-tutor",    icon: "🤖", label: "AI Tutor",     badge: "Soon" },
+  { id: "library",     icon: "library",    label: "Library" },
+  { id: "past-papers", icon: "papers",     label: "Past Papers",  badge: "Soon" },
+  { id: "flashcards",  icon: "flashcards", label: "Flashcards",   badge: "Soon" },
+  { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor",     badge: "Soon" },
 ];
 
 function StudentApp() {
@@ -51,6 +52,7 @@ function StudentApp() {
   }
 
   const initials = student.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() ?? "?";
+  const activeItem = NAV.find(n => n.id === activeNav);
 
   return (
     <div className="shell">
@@ -66,7 +68,7 @@ function StudentApp() {
             <button key={item.id}
               className={`nav-item${activeNav === item.id ? " active" : ""}`}
               onClick={() => setActiveNav(item.id)}>
-              <span className="nav-icon">{item.icon}</span>
+              <Icon name={item.icon} size={16} className="nav-icon" />
               {item.label}
               {item.badge && <span className="nav-badge">{item.badge}</span>}
             </button>
@@ -81,7 +83,9 @@ function StudentApp() {
               <div className="user-year">Year {student.current_year ?? student.year}</div>
             </div>
           </div>
-          <button className="sign-out-btn" onClick={handleLogout}>Sign out</button>
+          <button className="sign-out-btn" onClick={handleLogout}>
+            <Icon name="signOut" size={13} /> Sign out
+          </button>
         </div>
       </aside>
 
@@ -93,11 +97,11 @@ function StudentApp() {
           </>
         ) : (
           <>
-            <div className="topbar"><span className="topbar-title">{NAV.find(n => n.id === activeNav)?.label}</span></div>
+            <div className="topbar"><span className="topbar-title">{activeItem?.label}</span></div>
             <div className="page-content">
               <div className="coming-soon">
-                <div className="cs-icon">{NAV.find(n => n.id === activeNav)?.icon}</div>
-                <h3>{NAV.find(n => n.id === activeNav)?.label} — Coming Soon</h3>
+                <div className="cs-icon"><Icon name={activeItem?.icon} size={48} /></div>
+                <h3>{activeItem?.label} — Coming Soon</h3>
                 <p>This feature is under development and will be available soon.</p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../api";
+import Icon from "../../components/Icon";
 
 function Spinner() { return <span style={{ color: "#64748b", fontSize: ".8rem" }}>Loading…</span>; }
 
@@ -13,6 +14,17 @@ function ConfirmDelete({ label, onConfirm, onCancel }) {
   );
 }
 
+function fileIcon(contentType) {
+  if (contentType?.includes("pdf"))   return "filePdf";
+  if (contentType?.includes("image")) return "fileImage";
+  return "file";
+}
+function fileIconClass(contentType) {
+  if (contentType?.includes("pdf"))   return "pdf";
+  if (contentType?.includes("image")) return "img";
+  return "misc";
+}
+
 export default function ContentManager() {
   const [year, setYear] = useState(1);
   const [subjects, setSubjects] = useState([]);
@@ -22,13 +34,11 @@ export default function ContentManager() {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState({ subjects: false, topics: false, files: false });
-
-  // Inline forms
   const [newSubject, setNewSubject] = useState("");
   const [newTopic, setNewTopic] = useState("");
   const [editingSubject, setEditingSubject] = useState(null);
   const [editingTopic, setEditingTopic] = useState(null);
-  const [confirmDel, setConfirmDel] = useState(null); // { type, id, name }
+  const [confirmDel, setConfirmDel] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef();
 
@@ -68,7 +78,7 @@ export default function ContentManager() {
   async function saveSubjectEdit(e) {
     e.preventDefault();
     try {
-      await api.updateSubject(editingSubject.id, { name: editingSubject.name, display_order: editingSubject.display_order });
+      await api.updateSubject(editingSubject.id, { name: editingSubject.name, display_order: editingSubject.display_order ?? 0 });
       setSubjects(prev => prev.map(s => s.id === editingSubject.id ? { ...s, name: editingSubject.name } : s));
       setEditingSubject(null);
     } catch (e) { setError(e.message); }
@@ -87,7 +97,7 @@ export default function ContentManager() {
   async function saveTopicEdit(e) {
     e.preventDefault();
     try {
-      await api.updateTopic(editingTopic.id, { name: editingTopic.name, display_order: editingTopic.display_order });
+      await api.updateTopic(editingTopic.id, { name: editingTopic.name, display_order: editingTopic.display_order ?? 0 });
       setTopics(prev => prev.map(t => t.id === editingTopic.id ? { ...t, name: editingTopic.name } : t));
       setEditingTopic(null);
     } catch (e) { setError(e.message); }
@@ -97,7 +107,7 @@ export default function ContentManager() {
     const { type, id } = confirmDel;
     try {
       if (type === "subject") { await api.deleteSubject(id); setSubjects(p => p.filter(s => s.id !== id)); if (selSubject?.id === id) { setSelSubject(null); setTopics([]); setSelTopic(null); setFiles([]); } }
-      if (type === "topic")   { await api.deleteTopic(id);   setTopics(p => p.filter(t => t.id !== id));   if (selTopic?.id === id)   { setSelTopic(null); setFiles([]); } }
+      if (type === "topic")   { await api.deleteTopic(id);   setTopics(p => p.filter(t => t.id !== id));   if (selTopic?.id === id) { setSelTopic(null); setFiles([]); } }
       if (type === "file")    { await api.deleteFile(id);    setFiles(p => p.filter(f => f.id !== id)); }
     } catch (e) { setError(e.message); }
     setConfirmDel(null);
@@ -117,11 +127,16 @@ export default function ContentManager() {
     finally { setUploading(false); fileInputRef.current.value = ""; }
   }
 
-  const fmtSize = (b) => b ? (b < 1024*1024 ? `${(b/1024).toFixed(0)} KB` : `${(b/1024/1024).toFixed(1)} MB`) : "";
+  const fmtSize = (b) => !b ? "" : b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;
 
   return (
     <div>
-      {error && <div className="auth-error" style={{ marginBottom: "1rem" }}>{error} <button className="adm-btn adm-btn-ghost" style={{float:"right"}} onClick={() => setError("")}>✕</button></div>}
+      {error && (
+        <div className="auth-error" style={{ marginBottom: "1rem", display: "flex", alignItems: "center" }}>
+          <span style={{ flex: 1 }}>{error}</span>
+          <button className="adm-icon-btn" onClick={() => setError("")}><Icon name="close" size={14} /></button>
+        </div>
+      )}
 
       <div className="browser-card">
         <div className="browser-card-header">
@@ -134,7 +149,7 @@ export default function ContentManager() {
         </div>
 
         <div className="browser-cols">
-          {/* ── Subjects ── */}
+          {/* Subjects */}
           <div className="browser-col">
             <div className="col-title">Subjects</div>
             {loading.subjects ? <div className="col-empty"><Spinner /></div> : (
@@ -143,10 +158,9 @@ export default function ContentManager() {
                   <div key={s.id} className={`browser-item adm-row${selSubject?.id === s.id ? " selected" : ""}`} onClick={() => loadTopics(s)}>
                     {editingSubject?.id === s.id ? (
                       <form className="adm-inline-form" onSubmit={saveSubjectEdit} onClick={e => e.stopPropagation()}>
-                        <input className="adm-input" value={editingSubject.name} autoFocus
-                          onChange={e => setEditingSubject(p => ({ ...p, name: e.target.value }))} />
+                        <input className="adm-input" value={editingSubject.name} autoFocus onChange={e => setEditingSubject(p => ({ ...p, name: e.target.value }))} />
                         <button className="adm-btn adm-btn-primary" type="submit">Save</button>
-                        <button className="adm-btn adm-btn-ghost" type="button" onClick={() => setEditingSubject(null)}>✕</button>
+                        <button className="adm-btn adm-btn-ghost" type="button" onClick={() => setEditingSubject(null)}><Icon name="close" size={12} /></button>
                       </form>
                     ) : confirmDel?.type === "subject" && confirmDel.id === s.id ? (
                       <ConfirmDelete label={s.name} onConfirm={handleDelete} onCancel={() => setConfirmDel(null)} />
@@ -154,8 +168,8 @@ export default function ContentManager() {
                       <>
                         <span className="adm-item-name">{s.name}</span>
                         <span className="adm-actions">
-                          <button className="adm-icon-btn" title="Edit" onClick={e => { e.stopPropagation(); setEditingSubject(s); }}>✏️</button>
-                          <button className="adm-icon-btn" title="Delete" onClick={e => { e.stopPropagation(); setConfirmDel({ type:"subject", id:s.id, name:s.name }); }}>🗑️</button>
+                          <button className="adm-icon-btn" title="Edit" onClick={e => { e.stopPropagation(); setEditingSubject(s); }}><Icon name="edit" size={14} /></button>
+                          <button className="adm-icon-btn" title="Delete" onClick={e => { e.stopPropagation(); setConfirmDel({ type: "subject", id: s.id, name: s.name }); }}><Icon name="trash" size={14} /></button>
                         </span>
                       </>
                     )}
@@ -169,19 +183,18 @@ export default function ContentManager() {
             )}
           </div>
 
-          {/* ── Topics ── */}
+          {/* Topics */}
           <div className="browser-col">
             <div className="col-title">Topics</div>
-            {!selSubject ? <div className="col-empty">← Select a subject</div> : loading.topics ? <div className="col-empty"><Spinner /></div> : (
+            {!selSubject ? <div className="col-empty">Select a subject first</div> : loading.topics ? <div className="col-empty"><Spinner /></div> : (
               <>
                 {topics.map(t => (
                   <div key={t.id} className={`browser-item adm-row${selTopic?.id === t.id ? " selected" : ""}`} onClick={() => loadFiles(t)}>
                     {editingTopic?.id === t.id ? (
                       <form className="adm-inline-form" onSubmit={saveTopicEdit} onClick={e => e.stopPropagation()}>
-                        <input className="adm-input" value={editingTopic.name} autoFocus
-                          onChange={e => setEditingTopic(p => ({ ...p, name: e.target.value }))} />
+                        <input className="adm-input" value={editingTopic.name} autoFocus onChange={e => setEditingTopic(p => ({ ...p, name: e.target.value }))} />
                         <button className="adm-btn adm-btn-primary" type="submit">Save</button>
-                        <button className="adm-btn adm-btn-ghost" type="button" onClick={() => setEditingTopic(null)}>✕</button>
+                        <button className="adm-btn adm-btn-ghost" type="button" onClick={() => setEditingTopic(null)}><Icon name="close" size={12} /></button>
                       </form>
                     ) : confirmDel?.type === "topic" && confirmDel.id === t.id ? (
                       <ConfirmDelete label={t.name} onConfirm={handleDelete} onCancel={() => setConfirmDel(null)} />
@@ -189,8 +202,8 @@ export default function ContentManager() {
                       <>
                         <span className="adm-item-name">{t.name}</span>
                         <span className="adm-actions">
-                          <button className="adm-icon-btn" onClick={e => { e.stopPropagation(); setEditingTopic(t); }}>✏️</button>
-                          <button className="adm-icon-btn" onClick={e => { e.stopPropagation(); setConfirmDel({ type:"topic", id:t.id, name:t.name }); }}>🗑️</button>
+                          <button className="adm-icon-btn" onClick={e => { e.stopPropagation(); setEditingTopic(t); }}><Icon name="edit" size={14} /></button>
+                          <button className="adm-icon-btn" onClick={e => { e.stopPropagation(); setConfirmDel({ type: "topic", id: t.id, name: t.name }); }}><Icon name="trash" size={14} /></button>
                         </span>
                       </>
                     )}
@@ -204,18 +217,18 @@ export default function ContentManager() {
             )}
           </div>
 
-          {/* ── Files ── */}
+          {/* Files */}
           <div className="browser-col">
-            <div className="col-title" style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div className="col-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span>Files</span>
               {selTopic && (
-                <label className="adm-upload-btn" title="Upload file">
-                  {uploading ? "Uploading…" : "⬆ Upload"}
-                  <input ref={fileInputRef} type="file" style={{ display:"none" }} onChange={handleUpload} disabled={uploading} />
+                <label className="adm-upload-btn">
+                  <Icon name="upload" size={13} /> {uploading ? "Uploading…" : "Upload"}
+                  <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={handleUpload} disabled={uploading} />
                 </label>
               )}
             </div>
-            {!selTopic ? <div className="col-empty">← Select a topic</div> : loading.files ? <div className="col-empty"><Spinner /></div> : (
+            {!selTopic ? <div className="col-empty">Select a topic first</div> : loading.files ? <div className="col-empty"><Spinner /></div> : (
               <>
                 {files.length === 0 && <div className="col-empty">No files yet. Upload one above.</div>}
                 {files.map(f => (
@@ -225,12 +238,14 @@ export default function ContentManager() {
                     </div>
                   ) : (
                     <div key={f.id} className="browser-item adm-row">
-                      <div className="file-icon-wrap pdf">📄</div>
+                      <div className={`file-icon-wrap ${fileIconClass(f.content_type)}`}>
+                        <Icon name={fileIcon(f.content_type)} size={16} />
+                      </div>
                       <div className="file-meta">
                         <div className="file-name">{f.name}</div>
                         {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
                       </div>
-                      <button className="adm-icon-btn" onClick={() => setConfirmDel({ type:"file", id:f.id, name:f.name })}>🗑️</button>
+                      <button className="adm-icon-btn" onClick={() => setConfirmDel({ type: "file", id: f.id, name: f.name })}><Icon name="trash" size={14} /></button>
                     </div>
                   )
                 ))}

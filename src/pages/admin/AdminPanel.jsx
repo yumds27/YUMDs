@@ -2,10 +2,11 @@ import { useState } from "react";
 import AdminLoginPage from "./AdminLoginPage";
 import ContentManager from "./ContentManager";
 import StudentManager from "./StudentManager";
+import Icon from "../../components/Icon";
 
 const NAV = [
-  { id: "content",  icon: "📚", label: "Content" },
-  { id: "students", icon: "👥", label: "Students" },
+  { id: "content",  icon: "content",  label: "Content" },
+  { id: "students", icon: "students", label: "Students" },
 ];
 
 export default function AdminPanel() {
@@ -39,7 +40,7 @@ export default function AdminPanel() {
             <button key={item.id}
               className={`nav-item${activeNav === item.id ? " active" : ""}`}
               onClick={() => setActiveNav(item.id)}>
-              <span className="nav-icon">{item.icon}</span>
+              <Icon name={item.icon} size={16} className="nav-icon" />
               {item.label}
             </button>
           ))}
@@ -53,7 +54,9 @@ export default function AdminPanel() {
               <div className="user-year">Administrator</div>
             </div>
           </div>
-          <button className="sign-out-btn" onClick={handleLogout}>Sign out</button>
+          <button className="sign-out-btn" onClick={handleLogout}>
+            <Icon name="signOut" size={13} /> Sign out
+          </button>
         </div>
       </aside>
 
