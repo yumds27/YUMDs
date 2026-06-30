@@ -62,6 +62,19 @@ export const api = {
   getPapers:          (year)       => request("GET", `/api/papers?year=${year}`),
   getPaperQuestions:  (paperId)    => request("GET", `/api/papers/${paperId}/questions`),
   checkAnswer:        (qId, ans)   => request("POST", `/api/questions/${qId}/check`, { answer: ans }),
+  // Flashcards (student)
+  getDecks:           ()            => request("GET",  "/api/flashcards/decks"),
+  getStudyCards:      (deckId)      => request("GET",  `/api/flashcards/decks/${deckId}/study`),
+  reviewCard:         (cardId, rating) => request("POST", `/api/flashcards/cards/${cardId}/review`, { rating }),
+  // Flashcards (admin)
+  adminListDecks:     ()            => adm("GET",    "/api/admin/decks"),
+  adminCreateDeck:    (body)        => adm("POST",   "/api/admin/decks",              body),
+  adminUpdateDeck:    (id, body)    => adm("PUT",    `/api/admin/decks/${id}`,         body),
+  adminDeleteDeck:    (id)          => adm("DELETE", `/api/admin/decks/${id}`),
+  adminListCards:     (deckId)      => adm("GET",    `/api/admin/decks/${deckId}/cards`),
+  adminCreateCard:    (deckId, body) => adm("POST",  `/api/admin/decks/${deckId}/cards`, body),
+  adminUpdateCard:    (id, body)    => adm("PUT",    `/api/admin/cards/${id}`,         body),
+  adminDeleteCard:    (id)          => adm("DELETE", `/api/admin/cards/${id}`),
   // Past papers (admin)
   createPaper:        (body)       => adm("POST",   "/api/admin/papers",             body),
   updatePaper:        (id, body)   => adm("PUT",    `/api/admin/papers/${id}`,        body),

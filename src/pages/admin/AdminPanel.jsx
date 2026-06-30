@@ -3,12 +3,14 @@ import AdminLoginPage from "./AdminLoginPage";
 import ContentManager from "./ContentManager";
 import StudentManager from "./StudentManager";
 import PaperManager from "./PaperManager";
+import DeckManager from "./DeckManager";
 import Icon from "../../components/Icon";
 
 const NAV = [
-  { id: "content",  icon: "content",  label: "Content" },
-  { id: "papers",   icon: "papers",   label: "Past Papers" },
-  { id: "students", icon: "students", label: "Students" },
+  { id: "content",    icon: "content",    label: "Content" },
+  { id: "papers",     icon: "papers",     label: "Past Papers" },
+  { id: "flashcards", icon: "decks",      label: "Flashcards" },
+  { id: "students",   icon: "students",   label: "Students" },
 ];
 
 export default function AdminPanel() {
@@ -68,9 +70,10 @@ export default function AdminPanel() {
           <span className="topbar-title">{NAV.find(n => n.id === activeNav)?.label}</span>
         </div>
         <div className="page-content">
-          {activeNav === "content"  && <ContentManager />}
-          {activeNav === "papers"   && <PaperManager />}
-          {activeNav === "students" && <StudentManager />}
+          {activeNav === "content"    && <ContentManager />}
+          {activeNav === "papers"     && <PaperManager />}
+          {activeNav === "flashcards" && <DeckManager />}
+          {activeNav === "students"   && <StudentManager />}
         </div>
       </div>
     </div>

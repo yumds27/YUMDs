@@ -21,6 +21,11 @@ import {
   handleAdminCreateQuestion, handleAdminUpdateQuestion, handleAdminDeleteQuestion,
   handleAdminListQuestions,
 } from "./routes/papers";
+import {
+  handleGetDecks, handleGetStudyCards, handleReviewCard,
+  handleAdminListDecks, handleAdminCreateDeck, handleAdminUpdateDeck, handleAdminDeleteDeck,
+  handleAdminListCards, handleAdminCreateCard, handleAdminUpdateCard, handleAdminDeleteCard,
+} from "./routes/flashcards";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -87,6 +92,19 @@ export default {
     } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateQuestion(request, env, m![1]);
     } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteQuestion(request, env, m![1]);
     } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/questions$/))               { response = await handleAdminListQuestions(request, env, m[1]);
+    // ── Flashcards: student ──────────────────────────────────────────────────
+    } else if (pathname === "/api/flashcards/decks"                               && method === "GET")  { response = await handleGetDecks(request, env);
+    } else if (m = pathname.match(/^\/api\/flashcards\/decks\/(\d+)\/study$/))                         { response = await handleGetStudyCards(request, env, m[1]);
+    } else if (m = pathname.match(/^\/api\/flashcards\/cards\/(\d+)\/review$/) && method === "POST")   { response = await handleReviewCard(request, env, m![1]);
+    // ── Flashcards: admin ────────────────────────────────────────────────────
+    } else if (pathname === "/api/admin/decks"                                    && method === "GET")  { response = await handleAdminListDecks(request, env);
+    } else if (pathname === "/api/admin/decks"                                    && method === "POST") { response = await handleAdminCreateDeck(request, env);
+    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/) && method === "PUT")                 { response = await handleAdminUpdateDeck(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/) && method === "DELETE")              { response = await handleAdminDeleteDeck(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/) && method === "GET")           { response = await handleAdminListCards(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/) && method === "POST")         { response = await handleAdminCreateCard(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/) && method === "PUT")                 { response = await handleAdminUpdateCard(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/) && method === "DELETE")              { response = await handleAdminDeleteCard(request, env, m![1]);
     } else {
       response = json({ error: "not found" }, { status: 404 });
     }

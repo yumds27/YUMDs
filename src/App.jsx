@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ContentBrowser from "./pages/ContentBrowser";
 import PastPapers from "./pages/PastPapers";
+import Flashcards from "./pages/Flashcards";
 import AdminPanel from "./pages/admin/AdminPanel";
 import Icon from "./components/Icon";
 import "./App.css";
@@ -19,9 +20,9 @@ function getInitialPage() {
 
 const NAV = [
   { id: "library",     icon: "library",    label: "Library" },
-  { id: "past-papers", icon: "papers",     label: "Past Papers",  badge: "Soon" },
-  { id: "flashcards",  icon: "flashcards", label: "Flashcards",   badge: "Soon" },
-  { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor",     badge: "Soon" },
+  { id: "past-papers", icon: "papers",     label: "Past Papers" },
+  { id: "flashcards",  icon: "flashcards", label: "Flashcards" },
+  { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor",  badge: "Soon" },
 ];
 
 function StudentApp() {
@@ -101,6 +102,11 @@ function StudentApp() {
           <>
             <div className="topbar"><span className="topbar-title">Past Papers</span></div>
             <div className="page-content"><PastPapers student={student} /></div>
+          </>
+        ) : activeNav === "flashcards" ? (
+          <>
+            <div className="topbar"><span className="topbar-title">Flashcards</span></div>
+            <div className="page-content"><Flashcards /></div>
           </>
         ) : (
           <>
