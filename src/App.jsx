@@ -62,7 +62,9 @@ function StudentApp() {
     <div className="shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src="/logo.jfif" alt="YUMDs" className="sidebar-logo-img" onError={e => e.target.style.display="none"} />
+          <div className="sidebar-building-icon">
+            <Icon name="building" size={52} />
+          </div>
           <div className="logo-name">YUMD<span>s</span></div>
           <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
         </div>

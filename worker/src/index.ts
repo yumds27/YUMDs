@@ -69,47 +69,47 @@ export default {
     } else if (pathname === "/api/stripe/status"      && method === "GET")  { response = await handleSubscriptionStatus(request, env);
     // ── Content: student browse ──────────────────────────────────────────────
     } else if (pathname === "/api/content/subjects"   && method === "GET")  { response = await handleGetSubjects(request, env);
-    } else if (m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/files$/))  { response = await handleGetSubjectFiles(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/content\/subject-icons\/(\d+)$/))    { response = await handleGetSubjectIcon(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/topics$/)) { response = await handleGetTopics(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/content\/topics\/(\d+)\/files$/))    { response = await handleGetFiles(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/content\/files\/(\d+)\/url$/))       { response = await handleGetFileUrl(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/content\/view\/(\d+)$/))             { response = await handleViewFile(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/files$/)))  { response = await handleGetSubjectFiles(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/subject-icons\/(\d+)$/)))    { response = await handleGetSubjectIcon(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/topics$/))) { response = await handleGetTopics(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/topics\/(\d+)\/files$/)))    { response = await handleGetFiles(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/files\/(\d+)\/url$/)))       { response = await handleGetFileUrl(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/content\/view\/(\d+)$/)))             { response = await handleViewFile(request, env, m[1]);
     // ── Content: admin CRUD ──────────────────────────────────────────────────
     } else if (pathname === "/api/admin/subjects"     && method === "POST") { response = await handleAdminCreateSubject(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)\/icon$/) && method === "POST")  { response = await handleAdminUploadSubjectIcon(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateSubject(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteSubject(request, env, m![1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/subjects\/(\d+)\/icon$/))  && method === "POST") { response = await handleAdminUploadSubjectIcon(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/))        && method === "PUT")  { response = await handleAdminUpdateSubject(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/))        && method === "DELETE") { response = await handleAdminDeleteSubject(request, env, m[1]);
     } else if (pathname === "/api/admin/topics"       && method === "POST") { response = await handleAdminCreateTopic(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/topics\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateTopic(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/topics\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteTopic(request, env, m![1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/topics\/(\d+)$/))          && method === "PUT")    { response = await handleAdminUpdateTopic(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/topics\/(\d+)$/))          && method === "DELETE") { response = await handleAdminDeleteTopic(request, env, m[1]);
     } else if (pathname === "/api/admin/files/upload" && method === "POST") { response = await handleAdminUploadFile(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/files\/(\d+)$/) && method === "DELETE")  { response = await handleAdminDeleteFile(request, env, m![1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/files\/(\d+)$/))           && method === "DELETE") { response = await handleAdminDeleteFile(request, env, m[1]);
     // ── Past papers: student ─────────────────────────────────────────────────
     } else if (pathname === "/api/papers"             && method === "GET")  { response = await handleGetPapers(request, env);
-    } else if (m = pathname.match(/^\/api\/papers\/(\d+)\/questions$/))     { response = await handleGetQuestions(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/questions\/(\d+)\/check$/))      { response = await handleCheckAnswer(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/papers\/(\d+)\/questions$/)))     { response = await handleGetQuestions(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/questions\/(\d+)\/check$/)))      { response = await handleCheckAnswer(request, env, m[1]);
     // ── Past papers: admin ───────────────────────────────────────────────────
     } else if (pathname === "/api/admin/papers"       && method === "POST") { response = await handleAdminCreatePaper(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdatePaper(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeletePaper(request, env, m![1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/))          && method === "PUT")    { response = await handleAdminUpdatePaper(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/))          && method === "DELETE") { response = await handleAdminDeletePaper(request, env, m[1]);
     } else if (pathname === "/api/admin/questions"    && method === "POST") { response = await handleAdminCreateQuestion(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateQuestion(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteQuestion(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/questions$/))               { response = await handleAdminListQuestions(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/))       && method === "PUT")    { response = await handleAdminUpdateQuestion(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/))       && method === "DELETE") { response = await handleAdminDeleteQuestion(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/questions$/)))                      { response = await handleAdminListQuestions(request, env, m[1]);
     // ── Flashcards: student ──────────────────────────────────────────────────
-    } else if (pathname === "/api/flashcards/decks"                               && method === "GET")  { response = await handleGetDecks(request, env);
-    } else if (m = pathname.match(/^\/api\/flashcards\/decks\/(\d+)\/study$/))                         { response = await handleGetStudyCards(request, env, m[1]);
-    } else if (m = pathname.match(/^\/api\/flashcards\/cards\/(\d+)\/review$/) && method === "POST")   { response = await handleReviewCard(request, env, m![1]);
+    } else if (pathname === "/api/flashcards/decks"                                    && method === "GET")  { response = await handleGetDecks(request, env);
+    } else if ((m = pathname.match(/^\/api\/flashcards\/decks\/(\d+)\/study$/)))                            { response = await handleGetStudyCards(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/flashcards\/cards\/(\d+)\/review$/))       && method === "POST") { response = await handleReviewCard(request, env, m[1]);
     // ── Flashcards: admin ────────────────────────────────────────────────────
-    } else if (pathname === "/api/admin/decks"                                    && method === "GET")  { response = await handleAdminListDecks(request, env);
-    } else if (pathname === "/api/admin/decks"                                    && method === "POST") { response = await handleAdminCreateDeck(request, env);
-    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/) && method === "PUT")                 { response = await handleAdminUpdateDeck(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/) && method === "DELETE")              { response = await handleAdminDeleteDeck(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/) && method === "GET")           { response = await handleAdminListCards(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/) && method === "POST")         { response = await handleAdminCreateCard(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/) && method === "PUT")                 { response = await handleAdminUpdateCard(request, env, m![1]);
-    } else if (m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/) && method === "DELETE")              { response = await handleAdminDeleteCard(request, env, m![1]);
+    } else if (pathname === "/api/admin/decks"                                         && method === "GET")  { response = await handleAdminListDecks(request, env);
+    } else if (pathname === "/api/admin/decks"                                         && method === "POST") { response = await handleAdminCreateDeck(request, env);
+    } else if ((m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/))            && method === "PUT")    { response = await handleAdminUpdateDeck(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/decks\/(\d+)$/))            && method === "DELETE") { response = await handleAdminDeleteDeck(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/))     && method === "GET")    { response = await handleAdminListCards(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/cards$/))     && method === "POST")   { response = await handleAdminCreateCard(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/))            && method === "PUT")    { response = await handleAdminUpdateCard(request, env, m[1]);
+    } else if ((m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/))            && method === "DELETE") { response = await handleAdminDeleteCard(request, env, m[1]);
     } else {
       response = json({ error: "not found" }, { status: 404 });
     }

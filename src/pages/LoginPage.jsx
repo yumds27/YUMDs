@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
+import Icon from "../components/Icon";
 
 export default function LoginPage({ onLogin, onNavigate }) {
   const [tab, setTab] = useState("login"); // "login" | "forgot"
@@ -44,7 +45,7 @@ export default function LoginPage({ onLogin, onNavigate }) {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <img src="/logo.jfif" alt="YUMDs" className="auth-logo-img" onError={e => e.target.style.display="none"} />
+          <div className="auth-building-icon"><Icon name="building" size={56} /></div>
           <div className="logo-name">YUMD<span>s</span></div>
           <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
         </div>

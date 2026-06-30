@@ -33,6 +33,17 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .sidebar-logo {
   padding: 1.4rem 1.25rem 1.1rem;
   border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.sidebar-building-icon {
+  color: rgba(255,255,255,.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: .6rem;
 }
 .logo-name {
   color: #fff;
@@ -198,11 +209,13 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .coming-soon h3 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: .5rem; }
 .coming-soon p  { font-size: .875rem; max-width: 320px; }
 
-/* ── Sidebar logo image ──────────────────────────────────── */
-.sidebar-logo-img {
-  width: 48px; height: 48px; object-fit: contain;
-  background: #fff; border-radius: 10px; padding: 4px;
-  display: block; margin-bottom: .65rem;
+/* ── Auth logo building icon ─────────────────────────────── */
+.auth-building-icon {
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto .6rem;
 }
 
 /* ── Papers grid ─────────────────────────────────────────── */

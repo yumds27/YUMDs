@@ -105,6 +105,20 @@ const icons = {
       <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
     </svg>
   ),
+  building: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="1" y1="22" x2="23" y2="22"/>
+      <rect x="1" y="13" width="6" height="9"/>
+      <rect x="17" y="13" width="6" height="9"/>
+      <rect x="7" y="8" width="10" height="14"/>
+      <path d="M7 8 Q12 3 17 8"/>
+      <line x1="12" y1="3" x2="12" y2="1.5"/>
+      <rect x="9.5" y="10" width="5" height="5"/>
+      <path d="M10 22 L10 17.5 Q12 15.5 14 17.5 L14 22"/>
+      <rect x="2.5" y="15" width="3" height="4"/>
+      <rect x="18.5" y="15" width="3" height="4"/>
+    </svg>
+  ),
 };
 
 export default function Icon({ name, size = 16, className = "" }) {
