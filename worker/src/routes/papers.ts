@@ -136,28 +136,95 @@ Explanation: ${row.explanation ?? "(no explanation)"}`;
 export async function handleRecordSession(request: Request, env: Env): Promise<Response> {
   const student = await requireStudent(request, env);
   if (!student) return json({ error: "unauthorized" }, { status: 401 });
-  const { paper_id, paper_name, mode, score, total, time_sec } = await request.json() as any;
+  const { paper_id, paper_name, mode, score, total, time_sec, answers, marked_ids } = await request.json() as any;
   if (!paper_id || !mode || score === undefined || !total) {
     return json({ error: "paper_id, mode, score, total required" }, { status: 400 });
   }
   const { meta } = await env.DB.prepare(`
-    INSERT INTO student_paper_sessions (student_id, paper_id, paper_name, mode, score, total, time_sec)
-    VALUES (?,?,?,?,?,?,?)
-  `).bind(student.sub, paper_id, paper_name ?? null, mode, score, total, time_sec ?? 0).run();
-  return json({ id: meta.last_row_id }, { status: 201 });
+    INSERT INTO student_paper_sessions (student_id, paper_id, paper_name, mode, score, total, time_sec, marked_ids)
+    VALUES (?,?,?,?,?,?,?,?)
+  `).bind(
+    student.sub, paper_id, paper_name ?? null, mode, score, total,
+    time_sec ?? 0, JSON.stringify(marked_ids ?? [])
+  ).run();
+  const sessionId = meta.last_row_id;
+  if (Array.isArray(answers) && answers.length > 0) {
+    for (const a of answers) {
+      try {
+        await env.DB.prepare(
+          "INSERT INTO student_session_answers (session_id, question_id, chosen, is_correct) VALUES (?,?,?,?)"
+        ).bind(sessionId, a.question_id, a.chosen ?? null, a.is_correct ? 1 : 0).run();
+      } catch {}
+    }
+  }
+  return json({ id: sessionId }, { status: 201 });
 }
 
 export async function handleGetSessions(request: Request, env: Env): Promise<Response> {
   const student = await requireStudent(request, env);
   if (!student) return json({ error: "unauthorized" }, { status: 401 });
   const { results } = await env.DB.prepare(`
-    SELECT id, paper_id, paper_name, mode, score, total, time_sec, completed_at
+    SELECT id, paper_id, paper_name, mode, score, total, time_sec, marked_ids, completed_at
     FROM student_paper_sessions
     WHERE student_id = ?
     ORDER BY completed_at DESC
     LIMIT 100
   `).bind(student.sub).all();
   return json({ sessions: results });
+}
+
+export async function handleGetSessionDetail(request: Request, env: Env, sessionId: string): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const session = await env.DB.prepare(
+    "SELECT * FROM student_paper_sessions WHERE id=? AND student_id=?"
+  ).bind(Number(sessionId), student.sub).first<any>();
+  if (!session) return json({ error: "not found" }, { status: 404 });
+  const { results: answers } = await env.DB.prepare(`
+    SELECT sa.question_id, sa.chosen, sa.is_correct,
+           q.body, q.option_a, q.option_b, q.option_c, q.option_d, q.option_e,
+           q.correct, q.explanation, q.explanation_image, q.explanation_svg
+    FROM student_session_answers sa
+    JOIN questions q ON q.id = sa.question_id
+    WHERE sa.session_id = ?
+    ORDER BY sa.id
+  `).bind(Number(sessionId)).all();
+  return json({ session, answers });
+}
+
+export async function handleGetFileProgress(request: Request, env: Env): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const { results } = await env.DB.prepare(`
+    SELECT fp.file_id, fp.completed_at, f.name AS file_name, f.content_type,
+           t.name AS topic_name, s.name AS subject_name
+    FROM student_file_progress fp
+    JOIN files f ON f.id = fp.file_id
+    LEFT JOIN topics t ON t.id = f.topic_id
+    LEFT JOIN subjects s ON s.id = t.subject_id
+    WHERE fp.student_id = ? AND fp.completed = 1
+    ORDER BY s.name, t.name, f.name
+  `).bind(student.sub).all();
+  return json({ files: results });
+}
+
+export async function handleMarkFileComplete(request: Request, env: Env): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const { file_id, completed } = await request.json() as any;
+  if (!file_id) return json({ error: "file_id required" }, { status: 400 });
+  if (completed) {
+    await env.DB.prepare(`
+      INSERT INTO student_file_progress (student_id, file_id, completed, completed_at)
+      VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+      ON CONFLICT(student_id, file_id) DO UPDATE SET completed=1, completed_at=CURRENT_TIMESTAMP
+    `).bind(student.sub, file_id).run();
+  } else {
+    await env.DB.prepare(
+      "DELETE FROM student_file_progress WHERE student_id=? AND file_id=?"
+    ).bind(student.sub, file_id).run();
+  }
+  return json({ ok: true });
 }
 
 // ── Admin ─────────────────────────────────────────────────────

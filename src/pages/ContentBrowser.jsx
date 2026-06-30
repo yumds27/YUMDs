@@ -40,7 +40,7 @@ function SubjectCard({ subject, onClick }) {
 
 // ── Files view (after picking a subject) ─────────────────────
 
-function SubjectFilesView({ subject, onBack }) {
+function SubjectFilesView({ subject, completedFiles, onToggle, onBack }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
@@ -91,18 +91,30 @@ function SubjectFilesView({ subject, onBack }) {
               </button>
               {!collapsed[cat.id] && (
                 <div className="sf-file-list">
-                  {cat.files.map(f => (
-                    <button key={f.id} className="sf-file-row" onClick={() => openFile(f)}>
-                      <div className={`file-icon-wrap ${fileIconCls(f.content_type)}`}>
-                        <Icon name={fileIcon(f.content_type)} size={16} />
+                  {cat.files.map(f => {
+                    const done = completedFiles.has(f.id);
+                    return (
+                      <div key={f.id} className="sf-file-row">
+                        <button
+                          className={`sf-check-btn${done ? " done" : ""}`}
+                          onClick={() => onToggle(f.id)}
+                          title={done ? "Mark as incomplete" : "Mark as complete"}
+                        >
+                          {done && <Icon name="check" size={10} />}
+                        </button>
+                        <button className="sf-file-btn" onClick={() => openFile(f)}>
+                          <div className={`file-icon-wrap ${fileIconCls(f.content_type)}`}>
+                            <Icon name={fileIcon(f.content_type)} size={16} />
+                          </div>
+                          <div className="file-meta">
+                            <div className="file-name">{f.name}</div>
+                            {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
+                          </div>
+                          <Icon name="arrowLeft" size={13} className="sf-row-arrow" />
+                        </button>
                       </div>
-                      <div className="file-meta">
-                        <div className="file-name">{f.name}</div>
-                        {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
-                      </div>
-                      <Icon name="arrowLeft" size={13} className="sf-row-arrow" />
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -116,11 +128,12 @@ function SubjectFilesView({ subject, onBack }) {
 // ── Root ──────────────────────────────────────────────────────
 
 export default function ContentBrowser({ student }) {
-  const [year, setYear]             = useState(student.current_year ?? student.year ?? 1);
-  const [subjects, setSubjects]     = useState([]);
-  const [selected, setSelected]     = useState(null);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState("");
+  const [year, setYear]               = useState(student.current_year ?? student.year ?? 1);
+  const [subjects, setSubjects]       = useState([]);
+  const [selected, setSelected]       = useState(null);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [completedFiles, setCompleted] = useState(new Set());
 
   useEffect(() => {
     setSelected(null); setLoading(true); setError("");
@@ -130,8 +143,39 @@ export default function ContentBrowser({ student }) {
       .finally(() => setLoading(false));
   }, [year]);
 
+  useEffect(() => {
+    api.getFileProgress()
+      .then(d => setCompleted(new Set(d.files.map(f => f.file_id))))
+      .catch(() => {});
+  }, []);
+
+  async function handleToggle(fileId) {
+    const nowDone = !completedFiles.has(fileId);
+    setCompleted(prev => {
+      const next = new Set(prev);
+      nowDone ? next.add(fileId) : next.delete(fileId);
+      return next;
+    });
+    try {
+      await api.markFileComplete(fileId, nowDone);
+    } catch {
+      setCompleted(prev => {
+        const next = new Set(prev);
+        nowDone ? next.delete(fileId) : next.add(fileId);
+        return next;
+      });
+    }
+  }
+
   if (selected) {
-    return <SubjectFilesView subject={selected} onBack={() => setSelected(null)} />;
+    return (
+      <SubjectFilesView
+        subject={selected}
+        completedFiles={completedFiles}
+        onToggle={handleToggle}
+        onBack={() => setSelected(null)}
+      />
+    );
   }
 
   return (

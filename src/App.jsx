@@ -145,7 +145,7 @@ function StudentApp() {
           ) : activeNav === "about" ? (
             <AboutPage />
           ) : activeNav === "progress" ? (
-            <Progress student={student} />
+            <Progress student={student} onNavigate={navigate} />
           ) : (
             <div className="coming-soon">
               <div className="cs-icon"><Icon name={activeItem?.icon} size={48} /></div>

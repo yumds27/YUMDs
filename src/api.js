@@ -67,6 +67,9 @@ export const api = {
   // Progress
   recordPaperSession: (body)   => request("POST", "/api/progress/paper-session", body),
   getProgressSessions: ()      => request("GET",  "/api/progress/sessions"),
+  getSessionDetail:    (id)    => request("GET",  `/api/progress/sessions/${id}`),
+  getFileProgress:     ()      => request("GET",  "/api/progress/files"),
+  markFileComplete:    (fileId, completed) => request("POST", "/api/progress/file", { file_id: fileId, completed }),
   adminUploadExplanationImage: (qId, file) => {
     const fd = new FormData(); fd.append("file", file);
     return upload(`/api/admin/questions/${qId}/image`, fd);

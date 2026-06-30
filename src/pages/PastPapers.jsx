@@ -155,6 +155,8 @@ function QuestionSession({ paper, questions, mode, onBack }) {
   const sessionRecordedRef      = useRef(false);
   const elapsedRef              = useRef(0);
   const handlersRef             = useRef({});
+  const answersRef              = useRef({});
+  const markedRef               = useRef(new Set());
 
   useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
 
@@ -176,13 +178,18 @@ function QuestionSession({ paper, questions, mode, onBack }) {
   const allRevealed   = totalRevealed >= questions.length;
 
   function toggleMark() {
-    setMarked(m => { const n = new Set(m); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; });
+    setMarked(m => { const n = new Set(m); n.has(q.id) ? n.delete(q.id) : n.add(q.id); markedRef.current = n; return n; });
   }
 
   async function recordSession(rev) {
     if (sessionRecordedRef.current) return;
     sessionRecordedRef.current = true;
     const score = Object.values(rev).filter(r => r.isCorrect).length;
+    const answerArr = questions.map(q2 => ({
+      question_id: q2.id,
+      chosen: answersRef.current[q2.id] ?? null,
+      is_correct: rev[q2.id]?.isCorrect ?? false,
+    }));
     try {
       await api.recordPaperSession({
         paper_id: paper.id,
@@ -191,6 +198,8 @@ function QuestionSession({ paper, questions, mode, onBack }) {
         score,
         total: questions.length,
         time_sec: elapsedRef.current,
+        answers: answerArr,
+        marked_ids: [...markedRef.current],
       });
     } catch {}
   }
@@ -198,7 +207,7 @@ function QuestionSession({ paper, questions, mode, onBack }) {
   async function handleSelect(letter) {
     if (revealed[q.id] || submitted || submittingRef.current) return;
     if (!opts.includes(letter)) return;
-    setAnswers(a => ({ ...a, [q.id]: letter }));
+    setAnswers(a => { const n = { ...a, [q.id]: letter }; answersRef.current = n; return n; });
     if (mode === "tutor") {
       submittingRef.current = true;
       setSubmitting(true);
