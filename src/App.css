@@ -1064,7 +1064,7 @@ html.dark .card-form label { color: var(--text); }
   width: 160px; height: 160px;
   animation: landingIconIn .55s cubic-bezier(.2,.8,.2,1) both;
 }
-.landing-icon img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .85; }
+.landing-icon img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
 
 .landing-brand {
   text-align: center;
@@ -1146,7 +1146,7 @@ html.dark .landing-title { color: var(--text); }
 html.dark .landing-title span { color: rgba(226,232,240,.25); }
 html.dark .landing-card--featured { border-color: var(--blue); box-shadow: 0 4px 24px rgba(59,130,246,.12); }
 html.dark .landing-card:hover { box-shadow: 0 16px 48px rgba(0,0,0,.5); }
-html.dark .landing-icon img { opacity: .75; }
+html.dark .landing-icon img { mix-blend-mode: screen; }
 
 /* ── About page (student) ─────────────────────────────────── */
 .about-page {
