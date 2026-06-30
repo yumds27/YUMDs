@@ -1,6 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  color-scheme: light;
   --navy:       #162040;
   --navy-light: #1e2d56;
   --navy-hover: #243568;
@@ -300,7 +301,7 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .adm-row { position: relative; }
 .adm-row:hover .adm-actions { opacity: 1; }
 .adm-actions { display: flex; gap: .25rem; margin-left: auto; opacity: 0; transition: opacity .15s; }
-.adm-icon-btn { background: none; border: none; cursor: pointer; padding: .2rem .3rem; border-radius: 4px; font-size: .85rem; line-height: 1; }
+.adm-icon-btn { background: none; border: none; cursor: pointer; padding: .2rem .3rem; border-radius: 4px; font-size: .85rem; line-height: 1; color: var(--muted); display: inline-flex; align-items: center; }
 .adm-icon-btn:hover { background: rgba(0,0,0,.06); }
 .adm-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
