@@ -5,6 +5,18 @@ import StudentManager from "./StudentManager";
 import PaperManager from "./PaperManager";
 import DeckManager from "./DeckManager";
 import Icon from "../../components/Icon";
+import { toggleTheme } from "../../lib/theme";
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  function toggle() { const d = toggleTheme() === "dark"; setDark(d); }
+  return (
+    <button className="theme-toggle-btn" onClick={toggle}>
+      <Icon name={dark ? "sun" : "moon"} size={14} />
+      {dark ? "Light mode" : "Dark mode"}
+    </button>
+  );
+}
 
 const NAV = [
   { id: "content",    icon: "content",    label: "Content" },
@@ -62,6 +74,7 @@ export default function AdminPanel() {
           <button className="sign-out-btn" onClick={handleLogout}>
             <Icon name="signOut" size={13} /> Sign out
           </button>
+          <ThemeToggle />
         </div>
       </aside>
 

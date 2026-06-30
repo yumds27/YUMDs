@@ -8,7 +8,19 @@ import PastPapers from "./pages/PastPapers";
 import Flashcards from "./pages/Flashcards";
 import AdminPanel from "./pages/admin/AdminPanel";
 import Icon from "./components/Icon";
+import { toggleTheme } from "./lib/theme";
 import "./App.css";
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  function toggle() { const d = toggleTheme() === "dark"; setDark(d); }
+  return (
+    <button className="theme-toggle-btn" onClick={toggle}>
+      <Icon name={dark ? "sun" : "moon"} size={14} />
+      {dark ? "Light mode" : "Dark mode"}
+    </button>
+  );
+}
 
 const isAdmin = window.location.pathname.startsWith("/admin");
 
@@ -93,6 +105,7 @@ function StudentApp() {
           <button className="sign-out-btn" onClick={handleLogout}>
             <Icon name="signOut" size={13} /> Sign out
           </button>
+          <ThemeToggle />
         </div>
       </aside>
 
