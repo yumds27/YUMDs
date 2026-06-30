@@ -44,6 +44,9 @@ function SubjectFilesView({ subject, onBack }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
+  const [collapsed, setCollapsed]   = useState({});
+
+  function toggle(id) { setCollapsed(p => ({ ...p, [id]: !p[id] })); }
 
   useEffect(() => {
     api.getSubjectFiles(subject.id)
@@ -81,21 +84,27 @@ function SubjectFilesView({ subject, onBack }) {
         <div className="sf-categories">
           {categories.map(cat => (
             <div key={cat.id} className="sf-category">
-              <div className="sf-category-name">{cat.name}</div>
-              <div className="sf-file-list">
-                {cat.files.map(f => (
-                  <button key={f.id} className="sf-file-row" onClick={() => openFile(f)}>
-                    <div className={`file-icon-wrap ${fileIconCls(f.content_type)}`}>
-                      <Icon name={fileIcon(f.content_type)} size={16} />
-                    </div>
-                    <div className="file-meta">
-                      <div className="file-name">{f.name}</div>
-                      {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
-                    </div>
-                    <Icon name="arrowLeft" size={13} className="sf-row-arrow" />
-                  </button>
-                ))}
-              </div>
+              <button className="sf-category-header" onClick={() => toggle(cat.id)}>
+                <span className="sf-category-name">{cat.name}</span>
+                <span className="sf-category-count">{cat.files.length} file{cat.files.length !== 1 ? "s" : ""}</span>
+                <Icon name={collapsed[cat.id] ? "chevronDown" : "chevronUp"} size={14} />
+              </button>
+              {!collapsed[cat.id] && (
+                <div className="sf-file-list">
+                  {cat.files.map(f => (
+                    <button key={f.id} className="sf-file-row" onClick={() => openFile(f)}>
+                      <div className={`file-icon-wrap ${fileIconCls(f.content_type)}`}>
+                        <Icon name={fileIcon(f.content_type)} size={16} />
+                      </div>
+                      <div className="file-meta">
+                        <div className="file-name">{f.name}</div>
+                        {f.size_bytes && <div className="file-size">{fmtSize(f.size_bytes)}</div>}
+                      </div>
+                      <Icon name="arrowLeft" size={13} className="sf-row-arrow" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

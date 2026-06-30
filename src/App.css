@@ -706,13 +706,21 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .sf-categories { display: flex; flex-direction: column; gap: 1.5rem; }
 
 .sf-category {}
+.sf-category-header {
+  display: flex; align-items: center; gap: .5rem; width: 100%;
+  border: none; background: none; cursor: pointer; padding: .45rem .25rem;
+  border-radius: 6px; transition: background .12s; font-family: inherit;
+}
+.sf-category-header:hover { background: rgba(0,0,0,.04); }
 .sf-category-name {
   font-size: .68rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .12em; color: var(--muted);
-  padding-bottom: .5rem; margin-bottom: .25rem;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: .12em; color: var(--muted); flex: 1; text-align: left;
 }
-.sf-file-list { display: flex; flex-direction: column; }
+.sf-category-count {
+  font-size: .65rem; color: var(--muted); background: var(--border);
+  padding: .1rem .45rem; border-radius: 99px; flex-shrink: 0;
+}
+.sf-file-list { display: flex; flex-direction: column; padding: .25rem 0 .5rem; }
 
 .sf-file-row {
   display: flex; align-items: center; gap: .75rem; width: 100%;
@@ -725,6 +733,74 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
   margin-left: auto; color: var(--border); flex-shrink: 0;
   transform: rotate(180deg);
 }
+
+/* ── Import overlay modal ────────────────────────────────────── */
+.imp-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 500; display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.imp-modal {
+  background: var(--surface); border-radius: 16px; width: 100%; max-width: 680px;
+  max-height: 90vh; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden;
+}
+.imp-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.imp-modal-head h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.imp-drop-zone {
+  display: flex; flex-direction: column; align-items: center; gap: .75rem;
+  padding: 3rem 2rem; color: var(--muted); text-align: center;
+}
+.imp-drop-zone p { font-size: .95rem; font-weight: 600; color: var(--text); margin: .25rem 0 0; }
+.imp-drop-zone small { font-size: .8rem; max-width: 380px; line-height: 1.5; }
+.imp-formats { display: flex; flex-direction: column; gap: .4rem; font-size: .82rem; text-align: left; width: 100%; max-width: 340px; }
+.imp-format-row { display: flex; gap: .75rem; }
+.imp-format-row strong { min-width: 60px; color: var(--navy); }
+.imp-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1.5rem; border-bottom: 1px solid var(--border);
+  font-size: .85rem; color: var(--muted); flex-shrink: 0; gap: 1rem;
+}
+.imp-list { overflow-y: auto; flex: 1; padding: .5rem 1rem; }
+.imp-footer {
+  display: flex; justify-content: flex-end; gap: .75rem;
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+
+/* Question import items */
+.imp-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: .5rem; overflow: hidden; }
+.imp-item-head {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .6rem .75rem; cursor: pointer; background: var(--bg);
+  transition: background .12s;
+}
+.imp-item-head:hover { background: #e8edf4; }
+.imp-num { font-size: .72rem; font-weight: 700; color: var(--muted); min-width: 2rem; }
+.imp-preview { flex: 1; font-size: .82rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.imp-correct-badge {
+  background: #dcfce7; color: #166534; font-size: .7rem; font-weight: 700;
+  padding: .15rem .4rem; border-radius: 99px; flex-shrink: 0;
+}
+.imp-item-detail { padding: .75rem; display: flex; flex-direction: column; gap: .5rem; background: var(--surface); }
+.imp-opt-row { display: flex; align-items: center; gap: .5rem; }
+.imp-opt-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border);
+  background: none; cursor: pointer; font-size: .8rem; font-weight: 700;
+  color: var(--muted); flex-shrink: 0; transition: all .12s;
+}
+.imp-opt-btn.active { border-color: #16a34a; background: #16a34a; color: #fff; }
+
+/* Card import items */
+.imp-card-item {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .45rem .25rem; border-bottom: 1px solid var(--border);
+}
+.imp-card-item:last-child { border-bottom: none; }
+.imp-card-sides { flex: 1; display: flex; gap: .5rem; }
+.imp-card-sides .adm-input { flex: 1; font-size: .82rem; }
 
 /* ── Admin: subject icon preview ─────────────────────────────── */
 .adm-subject-icon {

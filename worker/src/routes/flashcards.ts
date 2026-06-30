@@ -206,3 +206,19 @@ export async function handleAdminDeleteCard(request: Request, env: Env, cardId: 
   await env.DB.prepare("DELETE FROM flashcard_cards WHERE id=?").bind(Number(cardId)).run();
   return json({ ok: true });
 }
+
+export async function handleAdminImportCards(request: Request, env: Env, deckId: string): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  const { cards } = await request.json() as { cards: { front: string; back: string }[] };
+  if (!Array.isArray(cards) || cards.length === 0)
+    return json({ error: "cards array required" }, { status: 400 });
+  let count = 0;
+  for (const card of cards) {
+    if (!card.front?.trim() || !card.back?.trim()) continue;
+    await env.DB.prepare("INSERT INTO flashcard_cards (deck_id, front, back) VALUES (?,?,?)")
+      .bind(Number(deckId), card.front.trim(), card.back.trim()).run();
+    count++;
+  }
+  return json({ ok: true, count }, { status: 201 });
+}

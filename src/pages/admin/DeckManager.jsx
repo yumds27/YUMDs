@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../api";
 import Icon from "../../components/Icon";
+import CardImporter from "./CardImporter";
 
 // ── Card editor panel ─────────────────────────────────────────────────────────
 
@@ -40,11 +41,12 @@ function CardForm({ deckId, card, onSave, onCancel }) {
 // ── Cards panel for a single deck ─────────────────────────────────────────────
 
 function CardsPanel({ deck, onBack }) {
-  const [cards, setCards]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [adding,  setAdding]  = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [err,     setErr]     = useState("");
+  const [cards,     setCards]     = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [adding,    setAdding]    = useState(false);
+  const [editing,   setEditing]   = useState(null);
+  const [err,       setErr]       = useState("");
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     api.adminListCards(deck.id)
@@ -73,11 +75,26 @@ function CardsPanel({ deck, onBack }) {
 
   return (
     <div className="cards-panel">
+      {importing && (
+        <CardImporter
+          deckId={deck.id}
+          onDone={count => {
+            setImporting(false);
+            api.adminListCards(deck.id)
+              .then(d => setCards(d.cards))
+              .catch(() => {});
+          }}
+          onClose={() => setImporting(false)}
+        />
+      )}
       <div className="panel-header">
         <button className="btn-ghost icon-btn" onClick={onBack}>
           <Icon name="arrowLeft" size={15} /> Back to decks
         </button>
         <h2>{deck.title}</h2>
+        <button className="btn-ghost icon-btn" onClick={() => setImporting(true)}>
+          <Icon name="upload" size={13} /> Import
+        </button>
         <button className="btn-primary icon-btn" onClick={() => { setAdding(true); setEditing(null); }}>
           <Icon name="plus" size={14} /> Add card
         </button>

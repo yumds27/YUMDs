@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../api";
 import Icon from "../../components/Icon";
+import QuestionImporter from "./QuestionImporter";
 
 const LETTERS = ["a", "b", "c", "d", "e"];
 const EMPTY_Q = { body: "", option_a: "", option_b: "", option_c: "", option_d: "", option_e: "", correct: "a", explanation: "" };
@@ -77,6 +78,7 @@ function QuestionsPanel({ paper, onBack }) {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     api.adminGetQuestions(paper.id)
@@ -92,10 +94,25 @@ function QuestionsPanel({ paper, onBack }) {
 
   return (
     <div>
+      {importing && (
+        <QuestionImporter
+          paperId={paper.id}
+          onDone={count => {
+            setImporting(false);
+            api.adminGetQuestions(paper.id)
+              .then(d => setQuestions(d.questions))
+              .catch(() => {});
+          }}
+          onClose={() => setImporting(false)}
+        />
+      )}
       <div style={{ display:"flex", alignItems:"center", gap:"1rem", marginBottom:"1.25rem" }}>
         <button className="btn-secondary" onClick={onBack}>← Back to papers</button>
         <h2 style={{ flex:1, fontSize:"1rem", fontWeight:600 }}>{paper.name}</h2>
         <span style={{ color:"#64748b", fontSize:".875rem" }}>{questions.length} questions</span>
+        <button className="adm-btn adm-btn-ghost" onClick={() => setImporting(true)}>
+          <Icon name="upload" size={13} /> Import PDF
+        </button>
       </div>
 
       <div className="browser-card">

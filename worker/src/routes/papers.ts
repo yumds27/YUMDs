@@ -115,3 +115,24 @@ export async function handleAdminListQuestions(request: Request, env: Env, paper
   ).bind(Number(paperId)).all();
   return json({ questions: results });
 }
+
+export async function handleAdminImportQuestions(request: Request, env: Env, paperId: string): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  const { questions } = await request.json() as { questions: any[] };
+  if (!Array.isArray(questions) || questions.length === 0)
+    return json({ error: "questions array required" }, { status: 400 });
+  let count = 0;
+  for (const q of questions) {
+    const { body, option_a, option_b, option_c, option_d, option_e, correct, explanation } = q;
+    if (!body?.trim() || !option_a?.trim() || !option_b?.trim() || !option_c?.trim() || !option_d?.trim() || !correct) continue;
+    if (!["a","b","c","d","e"].includes(correct)) continue;
+    await env.DB.prepare(`
+      INSERT INTO questions (paper_id, body, option_a, option_b, option_c, option_d, option_e, correct, explanation, display_order)
+      VALUES (?,?,?,?,?,?,?,?,?,?)
+    `).bind(Number(paperId), body.trim(), option_a.trim(), option_b.trim(), option_c.trim(), option_d.trim(),
+            option_e?.trim() ?? null, correct, explanation?.trim() ?? null, count).run();
+    count++;
+  }
+  return json({ ok: true, count }, { status: 201 });
+}
