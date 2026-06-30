@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "../../api";
 import Icon from "../../components/Icon";
 
+const BASE = import.meta.env.VITE_API_BASE ?? "https://api.yarmoukmds.com";
+
 function Spinner() { return <span style={{ color: "#64748b", fontSize: ".8rem" }}>Loading…</span>; }
 
 function ConfirmDelete({ label, onConfirm, onCancel }) {
@@ -14,33 +16,36 @@ function ConfirmDelete({ label, onConfirm, onCancel }) {
   );
 }
 
-function fileIcon(contentType) {
-  if (contentType?.includes("pdf"))   return "filePdf";
-  if (contentType?.includes("image")) return "fileImage";
+function fileIcon(ct) {
+  if (ct?.includes("pdf"))   return "filePdf";
+  if (ct?.includes("image")) return "fileImage";
   return "file";
 }
-function fileIconClass(contentType) {
-  if (contentType?.includes("pdf"))   return "pdf";
-  if (contentType?.includes("image")) return "img";
+function fileIconClass(ct) {
+  if (ct?.includes("pdf"))   return "pdf";
+  if (ct?.includes("image")) return "img";
   return "misc";
 }
 
 export default function ContentManager() {
-  const [year, setYear] = useState(1);
-  const [subjects, setSubjects] = useState([]);
-  const [selSubject, setSelSubject] = useState(null);
-  const [topics, setTopics] = useState([]);
-  const [selTopic, setSelTopic] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState({ subjects: false, topics: false, files: false });
-  const [newSubject, setNewSubject] = useState("");
-  const [newTopic, setNewTopic] = useState("");
+  const [year, setYear]               = useState(1);
+  const [subjects, setSubjects]       = useState([]);
+  const [selSubject, setSelSubject]   = useState(null);
+  const [topics, setTopics]           = useState([]);
+  const [selTopic, setSelTopic]       = useState(null);
+  const [files, setFiles]             = useState([]);
+  const [error, setError]             = useState("");
+  const [loading, setLoading]         = useState({ subjects: false, topics: false, files: false });
+  const [newSubject, setNewSubject]   = useState("");
+  const [newTopic, setNewTopic]       = useState("");
   const [editingSubject, setEditingSubject] = useState(null);
-  const [editingTopic, setEditingTopic] = useState(null);
-  const [confirmDel, setConfirmDel] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [editingTopic, setEditingTopic]     = useState(null);
+  const [confirmDel, setConfirmDel]   = useState(null);
+  const [uploading, setUploading]     = useState(false);
+  const [iconFor, setIconFor]         = useState(null);
+
   const fileInputRef = useRef();
+  const iconInputRef = useRef();
 
   function setLoad(key, val) { setLoading(l => ({ ...l, [key]: val })); }
 
@@ -113,7 +118,7 @@ export default function ContentManager() {
     setConfirmDel(null);
   }
 
-  async function handleUpload(e) {
+  async function handleUploadFile(e) {
     const file = e.target.files?.[0];
     if (!file || !selTopic) return;
     setUploading(true); setError("");
@@ -127,10 +132,27 @@ export default function ContentManager() {
     finally { setUploading(false); fileInputRef.current.value = ""; }
   }
 
+  async function handleUploadIcon(e) {
+    const file = e.target.files?.[0];
+    if (!file || !iconFor) return;
+    try {
+      const fd = new FormData();
+      fd.append("icon", file);
+      await api.uploadSubjectIcon(iconFor.id, fd);
+      // Mark subject as having an icon so preview shows
+      setSubjects(prev => prev.map(s => s.id === iconFor.id ? { ...s, icon_key: `subject-icons/${iconFor.id}`, _iconTs: Date.now() } : s));
+    } catch (e) { setError(e.message); }
+    finally { setIconFor(null); iconInputRef.current.value = ""; }
+  }
+
   const fmtSize = (b) => !b ? "" : b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;
 
   return (
     <div>
+      {/* Hidden inputs */}
+      <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={handleUploadFile} disabled={uploading} />
+      <input ref={iconInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleUploadIcon} />
+
       {error && (
         <div className="auth-error" style={{ marginBottom: "1rem", display: "flex", alignItems: "center" }}>
           <span style={{ flex: 1 }}>{error}</span>
@@ -149,7 +171,7 @@ export default function ContentManager() {
         </div>
 
         <div className="browser-cols">
-          {/* Subjects */}
+          {/* ── Subjects ── */}
           <div className="browser-col">
             <div className="col-title">Subjects</div>
             {loading.subjects ? <div className="col-empty"><Spinner /></div> : (
@@ -166,8 +188,27 @@ export default function ContentManager() {
                       <ConfirmDelete label={s.name} onConfirm={handleDelete} onCancel={() => setConfirmDel(null)} />
                     ) : (
                       <>
+                        {/* Icon thumbnail */}
+                        {s.icon_key ? (
+                          <img
+                            key={s._iconTs}
+                            src={`${BASE}/api/content/subject-icons/${s.id}?t=${s._iconTs ?? ""}`}
+                            alt=""
+                            className="adm-subject-icon"
+                            onError={e => e.target.style.display = "none"}
+                          />
+                        ) : (
+                          <span className="adm-subject-icon-placeholder">{s.name[0]}</span>
+                        )}
                         <span className="adm-item-name">{s.name}</span>
                         <span className="adm-actions">
+                          <button
+                            className="adm-icon-btn"
+                            title="Upload icon"
+                            onClick={e => { e.stopPropagation(); setIconFor(s); iconInputRef.current.click(); }}
+                          >
+                            <Icon name="upload" size={13} />
+                          </button>
                           <button className="adm-icon-btn" title="Edit" onClick={e => { e.stopPropagation(); setEditingSubject(s); }}><Icon name="edit" size={14} /></button>
                           <button className="adm-icon-btn" title="Delete" onClick={e => { e.stopPropagation(); setConfirmDel({ type: "subject", id: s.id, name: s.name }); }}><Icon name="trash" size={14} /></button>
                         </span>
@@ -183,9 +224,9 @@ export default function ContentManager() {
             )}
           </div>
 
-          {/* Topics */}
+          {/* ── Categories (Topics) ── */}
           <div className="browser-col">
-            <div className="col-title">Topics</div>
+            <div className="col-title">Categories</div>
             {!selSubject ? <div className="col-empty">Select a subject first</div> : loading.topics ? <div className="col-empty"><Spinner /></div> : (
               <>
                 {topics.map(t => (
@@ -210,25 +251,24 @@ export default function ContentManager() {
                   </div>
                 ))}
                 <form className="adm-add-form" onSubmit={addTopic}>
-                  <input className="adm-input" placeholder="New topic…" value={newTopic} onChange={e => setNewTopic(e.target.value)} />
+                  <input className="adm-input" placeholder="New category…" value={newTopic} onChange={e => setNewTopic(e.target.value)} />
                   <button className="adm-btn adm-btn-primary" type="submit" disabled={!newTopic.trim()}>Add</button>
                 </form>
               </>
             )}
           </div>
 
-          {/* Files */}
+          {/* ── Files ── */}
           <div className="browser-col">
             <div className="col-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span>Files</span>
               {selTopic && (
-                <label className="adm-upload-btn">
+                <button className="adm-upload-btn" onClick={() => fileInputRef.current.click()} disabled={uploading}>
                   <Icon name="upload" size={13} /> {uploading ? "Uploading…" : "Upload"}
-                  <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={handleUpload} disabled={uploading} />
-                </label>
+                </button>
               )}
             </div>
-            {!selTopic ? <div className="col-empty">Select a topic first</div> : loading.files ? <div className="col-empty"><Spinner /></div> : (
+            {!selTopic ? <div className="col-empty">Select a category first</div> : loading.files ? <div className="col-empty"><Spinner /></div> : (
               <>
                 {files.length === 0 && <div className="col-empty">No files yet. Upload one above.</div>}
                 {files.map(f => (

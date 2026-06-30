@@ -11,9 +11,37 @@ export async function handleGetSubjects(request: Request, env: Env): Promise<Res
   const year = new URL(request.url).searchParams.get("year");
   if (!year || isNaN(Number(year))) return json({ error: "year param required" }, { status: 400 });
   const { results } = await env.DB.prepare(
-    "SELECT id, name, display_order FROM subjects WHERE year=? ORDER BY display_order, name"
+    "SELECT id, name, display_order, icon_key FROM subjects WHERE year=? ORDER BY display_order, name"
   ).bind(Number(year)).all();
   return json({ subjects: results });
+}
+
+// All files for a subject, grouped into categories (topics)
+export async function handleGetSubjectFiles(request: Request, env: Env, subjectId: string): Promise<Response> {
+  const student = await requireStudent(request, env);
+  if (!student) return json({ error: "unauthorized" }, { status: 401 });
+  const subject = await env.DB.prepare("SELECT id, name, year FROM subjects WHERE id=?")
+    .bind(Number(subjectId)).first<{ id: number; name: string; year: number }>();
+  if (!subject) return json({ error: "not found" }, { status: 404 });
+  const { results } = await env.DB.prepare(`
+    SELECT f.id, f.name, f.content_type, f.size_bytes,
+           t.id AS topic_id, t.name AS topic_name, t.display_order AS topic_order
+    FROM files f
+    JOIN topics t ON t.id = f.topic_id
+    WHERE t.subject_id = ?
+    ORDER BY t.display_order ASC, t.name ASC, f.name ASC
+  `).bind(Number(subjectId)).all();
+  // Group by topic on the server
+  const topicMap = new Map<number, { id: number; name: string; files: any[] }>();
+  for (const row of results as any[]) {
+    if (!topicMap.has(row.topic_id)) {
+      topicMap.set(row.topic_id, { id: row.topic_id, name: row.topic_name, files: [] });
+    }
+    topicMap.get(row.topic_id)!.files.push({
+      id: row.id, name: row.name, content_type: row.content_type, size_bytes: row.size_bytes,
+    });
+  }
+  return json({ subject, categories: Array.from(topicMap.values()) });
 }
 
 export async function handleGetTopics(request: Request, env: Env, subjectId: string): Promise<Response> {
@@ -34,7 +62,7 @@ export async function handleGetFiles(request: Request, env: Env, topicId: string
   return json({ files: results });
 }
 
-// Returns a short-lived view token stored in KV so PDFs can be opened in a new tab
+// Short-lived view token stored in KV so files can be opened in a new tab
 export async function handleGetFileUrl(request: Request, env: Env, fileId: string): Promise<Response> {
   const student = await requireStudent(request, env);
   if (!student) return json({ error: "unauthorized" }, { status: 401 });
@@ -47,7 +75,7 @@ export async function handleGetFileUrl(request: Request, env: Env, fileId: strin
   return json({ url: `/api/content/view/${fileId}?token=${token}` });
 }
 
-// Streams the file from R2 — token validated from KV (15 min TTL)
+// Streams file from R2 — token validated from KV (15 min TTL, single-use)
 export async function handleViewFile(request: Request, env: Env, fileId: string): Promise<Response> {
   const token = new URL(request.url).searchParams.get("token");
   if (!token) return new Response("missing token", { status: 401 });
@@ -66,6 +94,21 @@ export async function handleViewFile(request: Request, env: Env, fileId: string)
       "content-type": file.content_type,
       "content-disposition": `inline; filename="${file.name}"`,
       "cache-control": "private, max-age=900",
+    },
+  });
+}
+
+// Serve subject icon from R2 — no auth needed (decorative image, browser <img> tag)
+export async function handleGetSubjectIcon(_request: Request, env: Env, subjectId: string): Promise<Response> {
+  const subject = await env.DB.prepare("SELECT icon_key FROM subjects WHERE id=?")
+    .bind(Number(subjectId)).first<{ icon_key: string | null }>();
+  if (!subject?.icon_key) return new Response("no icon", { status: 404 });
+  const obj = await env.FILES.get(subject.icon_key);
+  if (!obj) return new Response("icon not found in storage", { status: 404 });
+  return new Response(obj.body, {
+    headers: {
+      "content-type": obj.httpMetadata?.contentType ?? "image/png",
+      "cache-control": "public, max-age=604800",
     },
   });
 }
@@ -98,6 +141,22 @@ export async function handleAdminDeleteSubject(request: Request, env: Env, id: s
   if (!admin) return json({ error: "unauthorized" }, { status: 401 });
   await env.DB.prepare("DELETE FROM subjects WHERE id=?").bind(Number(id)).run();
   return json({ ok: true });
+}
+
+// Upload/replace icon for a subject
+export async function handleAdminUploadSubjectIcon(request: Request, env: Env, id: string): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  const form = await request.formData();
+  const icon = form.get("icon") as File | null;
+  if (!icon) return json({ error: "icon file required" }, { status: 400 });
+  if (!icon.type.startsWith("image/")) return json({ error: "file must be an image" }, { status: 400 });
+  const r2Key = `subject-icons/${id}`;
+  await env.FILES.put(r2Key, icon.stream(), {
+    httpMetadata: { contentType: icon.type },
+  });
+  await env.DB.prepare("UPDATE subjects SET icon_key=? WHERE id=?").bind(r2Key, Number(id)).run();
+  return json({ ok: true, icon_key: r2Key });
 }
 
 export async function handleAdminCreateTopic(request: Request, env: Env): Promise<Response> {

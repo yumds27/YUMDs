@@ -41,15 +41,17 @@ export const api = {
   forgotPassword: (email)           => request("POST", "/api/auth/forgot-password", { email }),
   resetPassword:  (token, password) => request("POST", "/api/auth/reset-password", { token, password }),
   // Student content browse
-  getSubjects: (year)      => request("GET", `/api/content/subjects?year=${year}`),
-  getTopics:   (subjectId) => request("GET", `/api/content/subjects/${subjectId}/topics`),
-  getFiles:    (topicId)   => request("GET", `/api/content/topics/${topicId}/files`),
-  getFileUrl:  (fileId)    => request("GET", `/api/content/files/${fileId}/url`),
+  getSubjects:       (year)      => request("GET", `/api/content/subjects?year=${year}`),
+  getSubjectFiles:   (subjectId) => request("GET", `/api/content/subjects/${subjectId}/files`),
+  getTopics:         (subjectId) => request("GET", `/api/content/subjects/${subjectId}/topics`),
+  getFiles:          (topicId)   => request("GET", `/api/content/topics/${topicId}/files`),
+  getFileUrl:        (fileId)    => request("GET", `/api/content/files/${fileId}/url`),
   // Admin auth
   adminLogin:    (body) => request("POST", "/api/admin/login", body),
   // Admin content CRUD
-  createSubject: (body) => adm("POST",   "/api/admin/subjects",    body),
-  updateSubject: (id, body) => adm("PUT", `/api/admin/subjects/${id}`, body),
+  createSubject:      (body)             => adm("POST",   "/api/admin/subjects",              body),
+  uploadSubjectIcon:  (subjectId, fd)    => upload(`/api/admin/subjects/${subjectId}/icon`,   fd),
+  updateSubject:      (id, body)             => adm("PUT",    `/api/admin/subjects/${id}`,        body),
   deleteSubject: (id)   => adm("DELETE", `/api/admin/subjects/${id}`),
   createTopic:   (body) => adm("POST",   "/api/admin/topics",      body),
   updateTopic:   (id, body) => adm("PUT", `/api/admin/topics/${id}`,   body),

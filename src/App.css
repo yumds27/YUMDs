@@ -634,3 +634,92 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 }
 .home-card-desc { font-size: .85rem; color: var(--muted); line-height: 1.5; }
 .home-card-arrow { color: var(--border); flex-shrink: 0; }
+
+/* ── Subject card grid (student library) ────────────────────── */
+.subject-browser { padding-bottom: 2rem; }
+
+.subject-year-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.25rem 1.5rem .75rem; flex-wrap: wrap;
+}
+.subject-year-label { font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 1rem; padding: .5rem 1.5rem 1.5rem;
+}
+
+.subject-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .75rem; aspect-ratio: 1;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 1.25rem .75rem 1rem;
+  cursor: pointer; font-family: inherit;
+  transition: box-shadow .15s, transform .12s, border-color .15s;
+}
+.subject-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  transform: translateY(-3px);
+  border-color: var(--blue);
+}
+
+.subject-card-icon {
+  width: 72px; height: 72px; border-radius: 16px;
+  background: var(--bg); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  position: relative;
+}
+.subject-card-icon img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+.subject-card-initial {
+  font-size: 2rem; font-weight: 800; color: var(--navy); opacity: .22; line-height: 1;
+  display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+}
+.subject-card-name {
+  font-size: .875rem; font-weight: 700; color: var(--text);
+  text-align: center; line-height: 1.3;
+}
+
+/* ── Subject files view ──────────────────────────────────────── */
+.subject-files { padding: 1.25rem 1.5rem; }
+
+.subject-files-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+}
+.subject-files-title { font-size: 1.15rem; font-weight: 800; color: var(--navy); }
+
+.sf-categories { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.sf-category {}
+.sf-category-name {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--muted);
+  padding-bottom: .5rem; margin-bottom: .25rem;
+  border-bottom: 1px solid var(--border);
+}
+.sf-file-list { display: flex; flex-direction: column; }
+
+.sf-file-row {
+  display: flex; align-items: center; gap: .75rem; width: 100%;
+  padding: .6rem .5rem; border-radius: 8px; border: none;
+  background: none; cursor: pointer; font-family: inherit; text-align: left;
+  transition: background .12s;
+}
+.sf-file-row:hover { background: var(--bg); }
+.sf-row-arrow {
+  margin-left: auto; color: var(--border); flex-shrink: 0;
+  transform: rotate(180deg);
+}
+
+/* ── Admin: subject icon preview ─────────────────────────────── */
+.adm-subject-icon {
+  width: 28px; height: 28px; border-radius: 6px; object-fit: contain;
+  background: var(--bg); flex-shrink: 0;
+}
+.adm-subject-icon-placeholder {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--bg); display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 700; color: var(--muted); flex-shrink: 0;
+}

@@ -10,8 +10,10 @@ import {
   handleCreateCheckout, handleStripeWebhook, handleCreatePortal, handleSubscriptionStatus,
 } from "./routes/stripe";
 import {
-  handleGetSubjects, handleGetTopics, handleGetFiles, handleGetFileUrl, handleViewFile,
+  handleGetSubjects, handleGetSubjectFiles, handleGetSubjectIcon,
+  handleGetTopics, handleGetFiles, handleGetFileUrl, handleViewFile,
   handleAdminCreateSubject, handleAdminUpdateSubject, handleAdminDeleteSubject,
+  handleAdminUploadSubjectIcon,
   handleAdminCreateTopic, handleAdminUpdateTopic, handleAdminDeleteTopic,
   handleAdminUploadFile, handleAdminDeleteFile,
 } from "./routes/content";
@@ -67,12 +69,15 @@ export default {
     } else if (pathname === "/api/stripe/status"      && method === "GET")  { response = await handleSubscriptionStatus(request, env);
     // ── Content: student browse ──────────────────────────────────────────────
     } else if (pathname === "/api/content/subjects"   && method === "GET")  { response = await handleGetSubjects(request, env);
+    } else if (m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/files$/))  { response = await handleGetSubjectFiles(request, env, m[1]);
+    } else if (m = pathname.match(/^\/api\/content\/subject-icons\/(\d+)$/))    { response = await handleGetSubjectIcon(request, env, m[1]);
     } else if (m = pathname.match(/^\/api\/content\/subjects\/(\d+)\/topics$/)) { response = await handleGetTopics(request, env, m[1]);
     } else if (m = pathname.match(/^\/api\/content\/topics\/(\d+)\/files$/))    { response = await handleGetFiles(request, env, m[1]);
     } else if (m = pathname.match(/^\/api\/content\/files\/(\d+)\/url$/))       { response = await handleGetFileUrl(request, env, m[1]);
     } else if (m = pathname.match(/^\/api\/content\/view\/(\d+)$/))             { response = await handleViewFile(request, env, m[1]);
     // ── Content: admin CRUD ──────────────────────────────────────────────────
     } else if (pathname === "/api/admin/subjects"     && method === "POST") { response = await handleAdminCreateSubject(request, env);
+    } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)\/icon$/) && method === "POST")  { response = await handleAdminUploadSubjectIcon(request, env, m![1]);
     } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateSubject(request, env, m![1]);
     } else if (m = pathname.match(/^\/api\/admin\/subjects\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteSubject(request, env, m![1]);
     } else if (pathname === "/api/admin/topics"       && method === "POST") { response = await handleAdminCreateTopic(request, env);
