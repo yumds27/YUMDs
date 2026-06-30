@@ -2,10 +2,12 @@ import { useState } from "react";
 import AdminLoginPage from "./AdminLoginPage";
 import ContentManager from "./ContentManager";
 import StudentManager from "./StudentManager";
+import PaperManager from "./PaperManager";
 import Icon from "../../components/Icon";
 
 const NAV = [
   { id: "content",  icon: "content",  label: "Content" },
+  { id: "papers",   icon: "papers",   label: "Past Papers" },
   { id: "students", icon: "students", label: "Students" },
 ];
 
@@ -66,6 +68,7 @@ export default function AdminPanel() {
         </div>
         <div className="page-content">
           {activeNav === "content"  && <ContentManager />}
+          {activeNav === "papers"   && <PaperManager />}
           {activeNav === "students" && <StudentManager />}
         </div>
       </div>

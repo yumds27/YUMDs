@@ -15,6 +15,12 @@ import {
   handleAdminCreateTopic, handleAdminUpdateTopic, handleAdminDeleteTopic,
   handleAdminUploadFile, handleAdminDeleteFile,
 } from "./routes/content";
+import {
+  handleGetPapers, handleGetQuestions, handleCheckAnswer,
+  handleAdminCreatePaper, handleAdminUpdatePaper, handleAdminDeletePaper,
+  handleAdminCreateQuestion, handleAdminUpdateQuestion, handleAdminDeleteQuestion,
+  handleAdminListQuestions,
+} from "./routes/papers";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -69,6 +75,18 @@ export default {
     } else if (m = pathname.match(/^\/api\/admin\/topics\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteTopic(request, env, m![1]);
     } else if (pathname === "/api/admin/files/upload" && method === "POST") { response = await handleAdminUploadFile(request, env);
     } else if (m = pathname.match(/^\/api\/admin\/files\/(\d+)$/) && method === "DELETE")  { response = await handleAdminDeleteFile(request, env, m![1]);
+    // ── Past papers: student ─────────────────────────────────────────────────
+    } else if (pathname === "/api/papers"             && method === "GET")  { response = await handleGetPapers(request, env);
+    } else if (m = pathname.match(/^\/api\/papers\/(\d+)\/questions$/))     { response = await handleGetQuestions(request, env, m[1]);
+    } else if (m = pathname.match(/^\/api\/questions\/(\d+)\/check$/))      { response = await handleCheckAnswer(request, env, m[1]);
+    // ── Past papers: admin ───────────────────────────────────────────────────
+    } else if (pathname === "/api/admin/papers"       && method === "POST") { response = await handleAdminCreatePaper(request, env);
+    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdatePaper(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeletePaper(request, env, m![1]);
+    } else if (pathname === "/api/admin/questions"    && method === "POST") { response = await handleAdminCreateQuestion(request, env);
+    } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "PUT")    { response = await handleAdminUpdateQuestion(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/questions\/(\d+)$/) && method === "DELETE") { response = await handleAdminDeleteQuestion(request, env, m![1]);
+    } else if (m = pathname.match(/^\/api\/admin\/papers\/(\d+)\/questions$/))               { response = await handleAdminListQuestions(request, env, m[1]);
     } else {
       response = json({ error: "not found" }, { status: 404 });
     }

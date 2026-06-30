@@ -14,11 +14,6 @@ routes = [
   { pattern = "api.yarmoukmds.com", custom_domain = true }
 ]
 
-# Email sending binding — requires enabling first:
-# npx wrangler email sending enable yarmoukmds.com
-[[send_email]]
-name = "EMAIL"
-
 [[d1_databases]]
 binding = "DB"
 database_name = "yarmoukmds-db"
@@ -37,3 +32,4 @@ id = "a8adbf6f9b3345e78a998bf881c8ee6a"
 # Lesson #8: explicitly lists both apex and subdomains so CORS never breaks
 # on just one. Comma-separated; localhost included for local wrangler dev.
 ALLOWED_ORIGIN = "https://yarmoukmds.com,https://www.yarmoukmds.com,http://localhost:5173"
+STRIPE_PRICE_ID = "price_1TnoBUDqJlHFbC2TBqoB5Uvz"

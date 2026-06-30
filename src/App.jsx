@@ -3,6 +3,7 @@ import { api } from "./api";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ContentBrowser from "./pages/ContentBrowser";
+import PastPapers from "./pages/PastPapers";
 import AdminPanel from "./pages/admin/AdminPanel";
 import Icon from "./components/Icon";
 import "./App.css";
@@ -58,8 +59,9 @@ function StudentApp() {
     <div className="shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
+          <img src="/logo.png" alt="YUMDs" className="sidebar-logo-img" onError={e => e.target.style.display="none"} />
           <div className="logo-name">YUMD<span>s</span></div>
-          <div className="logo-sub">Yarmouk University<br />Medical Resources & Files</div>
+          <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
         </div>
 
         <div className="sidebar-section-title">Study</div>
@@ -94,6 +96,11 @@ function StudentApp() {
           <>
             <div className="topbar"><span className="topbar-title">Library</span></div>
             <div className="page-content"><ContentBrowser student={student} /></div>
+          </>
+        ) : activeNav === "past-papers" ? (
+          <>
+            <div className="topbar"><span className="topbar-title">Past Papers</span></div>
+            <div className="page-content"><PastPapers student={student} /></div>
           </>
         ) : (
           <>

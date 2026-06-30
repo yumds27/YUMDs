@@ -58,4 +58,16 @@ export const api = {
   deleteFile:    (id)   => adm("DELETE", `/api/admin/files/${id}`),
   // Admin students
   getStudents: () => adm("GET", "/api/admin/students"),
+  // Past papers (student)
+  getPapers:          (year)       => request("GET", `/api/papers?year=${year}`),
+  getPaperQuestions:  (paperId)    => request("GET", `/api/papers/${paperId}/questions`),
+  checkAnswer:        (qId, ans)   => request("POST", `/api/questions/${qId}/check`, { answer: ans }),
+  // Past papers (admin)
+  createPaper:        (body)       => adm("POST",   "/api/admin/papers",             body),
+  updatePaper:        (id, body)   => adm("PUT",    `/api/admin/papers/${id}`,        body),
+  deletePaper:        (id)         => adm("DELETE", `/api/admin/papers/${id}`),
+  createQuestion:     (body)       => adm("POST",   "/api/admin/questions",           body),
+  updateQuestion:     (id, body)   => adm("PUT",    `/api/admin/questions/${id}`,     body),
+  deleteQuestion:     (id)         => adm("DELETE", `/api/admin/questions/${id}`),
+  adminGetQuestions:  (paperId)    => adm("GET",    `/api/admin/papers/${paperId}/questions`),
 };
