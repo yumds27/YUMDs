@@ -1,19 +1,24 @@
 import type { Env } from "./env";
 
-const FROM = { email: "noreply@yarmoukmds.com", name: "YarmoukMDS" };
+const FROM = "YarmoukMDS <noreply@yarmoukmds.com>";
 const BASE_URL = "https://yarmoukmds.com";
 
 async function send(env: Env, to: string, subject: string, html: string, text: string) {
-  if (!env.EMAIL) {
-    console.warn(`[email] EMAIL binding not configured — skipping send to ${to}`);
+  if (!env.RESEND_API_KEY) {
+    console.warn(`[email] RESEND_API_KEY not set — skipping send to ${to}`);
     return;
   }
-  try {
-    await (env.EMAIL as { send: (o: unknown) => Promise<void> }).send({ to, from: FROM, subject, html, text });
-  } catch (err) {
-    // Throws if email sending isn't enabled for the domain yet.
-    // Enable via: npx wrangler email sending enable yarmoukmds.com
-    console.error(`[email] send failed for ${to}:`, err);
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${env.RESEND_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ from: FROM, to: [to], subject, html, text }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`[email] Resend error ${res.status} for ${to}: ${err}`);
   }
 }
 

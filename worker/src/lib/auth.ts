@@ -52,3 +52,12 @@ export async function requireAdmin(request: Request, env: Env): Promise<AdminAut
   const auth = await extractAuth(request, env);
   return auth?.role === "admin" ? (auth as AdminAuth) : null;
 }
+
+export async function requireActiveSubscription(request: Request, env: Env): Promise<StudentAuth | null> {
+  const student = await requireStudent(request, env);
+  if (!student) return null;
+  const sub = await env.DB.prepare(
+    "SELECT status FROM subscriptions WHERE student_id = ?"
+  ).bind(student.sub).first<{ status: string }>();
+  return sub?.status === "active" ? student : null;
+}

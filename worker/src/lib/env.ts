@@ -3,10 +3,11 @@ export interface Env {
   FILES: R2Bucket;
   CONFIG: KVNamespace;
   ALLOWED_ORIGIN: string;
-  EMAIL?: { send: (opts: unknown) => Promise<void> };
+  RESEND_API_KEY?: string;
   ADMIN_SECRET_KEY?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_ID?: string;
   DEEPSEEK_API_KEY?: string;
   CLAUDE_API_KEY?: string;
   GOOGLE_OAUTH_CLIENT_ID?: string;
@@ -21,10 +22,11 @@ export function checkBindings(env: Env) {
     ["ALLOWED_ORIGIN", env.ALLOWED_ORIGIN],
   ];
   const optional: Array<[string, unknown]> = [
-    ["EMAIL", env.EMAIL],
+    ["RESEND_API_KEY", env.RESEND_API_KEY],
     ["ADMIN_SECRET_KEY", env.ADMIN_SECRET_KEY],
     ["STRIPE_SECRET_KEY", env.STRIPE_SECRET_KEY],
     ["STRIPE_WEBHOOK_SECRET", env.STRIPE_WEBHOOK_SECRET],
+    ["STRIPE_PRICE_ID", env.STRIPE_PRICE_ID],
     ["DEEPSEEK_API_KEY", env.DEEPSEEK_API_KEY],
     ["CLAUDE_API_KEY", env.CLAUDE_API_KEY],
     ["GOOGLE_OAUTH_CLIENT_ID", env.GOOGLE_OAUTH_CLIENT_ID],

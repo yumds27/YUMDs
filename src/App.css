@@ -197,6 +197,55 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .coming-soon h3 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: .5rem; }
 .coming-soon p  { font-size: .875rem; max-width: 320px; }
 
+/* ── Admin panel ─────────────────────────────────────────── */
+.adm-row { position: relative; }
+.adm-row:hover .adm-actions { opacity: 1; }
+.adm-actions { display: flex; gap: .25rem; margin-left: auto; opacity: 0; transition: opacity .15s; }
+.adm-icon-btn { background: none; border: none; cursor: pointer; padding: .2rem .3rem; border-radius: 4px; font-size: .85rem; line-height: 1; }
+.adm-icon-btn:hover { background: rgba(0,0,0,.06); }
+.adm-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.adm-inline-form { display: flex; gap: .4rem; align-items: center; width: 100%; }
+.adm-add-form    { display: flex; gap: .4rem; padding: .6rem .75rem; border-top: 1px solid var(--border); background: #fafbfc; }
+.adm-input { flex: 1; padding: .35rem .6rem; border: 1px solid var(--border); border-radius: 6px; font-size: .85rem; outline: none; min-width: 0; }
+.adm-input:focus { border-color: var(--navy); }
+
+.adm-btn { padding: .3rem .65rem; border-radius: 6px; font-size: .8rem; font-weight: 500; cursor: pointer; border: none; white-space: nowrap; }
+.adm-btn-primary { background: var(--navy); color: #fff; }
+.adm-btn-primary:hover:not(:disabled) { background: var(--navy-light); }
+.adm-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.adm-btn-danger  { background: #dc2626; color: #fff; }
+.adm-btn-danger:hover { background: #b91c1c; }
+.adm-btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.adm-btn-ghost:hover { background: var(--bg); }
+
+.adm-confirm { display: flex; align-items: center; gap: .5rem; width: 100%; font-size: .8rem; }
+.adm-confirm span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #dc2626; }
+
+.adm-upload-btn {
+  font-size: .7rem; font-weight: 600; padding: .2rem .55rem; border-radius: 6px;
+  background: var(--navy); color: #fff; cursor: pointer; white-space: nowrap;
+}
+.adm-upload-btn:hover { background: var(--navy-light); }
+
+.adm-search {
+  padding: .35rem .75rem; border: 1px solid var(--border); border-radius: 8px;
+  font-size: .875rem; outline: none; width: 240px;
+}
+.adm-search:focus { border-color: var(--navy); }
+
+.adm-table-wrap { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.adm-table th { text-align: left; padding: .6rem 1rem; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: #fafbfc; border-bottom: 1px solid var(--border); }
+.adm-table td { padding: .7rem 1rem; border-bottom: 1px solid #f1f5f9; color: var(--text); }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #f8fafc; }
+.adm-muted { color: var(--muted); }
+
+.adm-badge { display: inline-block; padding: .15rem .5rem; border-radius: 12px; font-size: .72rem; font-weight: 600; }
+.adm-badge-green { background: #dcfce7; color: #15803d; }
+.adm-badge-gray  { background: #f1f5f9; color: #64748b; }
+
 /* ── Auth ────────────────────────────────────────────────── */
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; background: var(--bg); }
 .auth-card {

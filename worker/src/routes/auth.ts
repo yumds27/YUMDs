@@ -157,6 +157,20 @@ export async function handleMe(request: Request, env: Env): Promise<Response> {
   return json({ student });
 }
 
+// ── Admin: list students ──────────────────────────────────────
+export async function handleAdminListStudents(request: Request, env: Env): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (!admin) return json({ error: "unauthorized" }, { status: 401 });
+  const { results } = await env.DB.prepare(`
+    SELECT s.id, s.email, s.name, s.current_year, s.email_verified, s.created_at,
+           sub.status AS sub_status, sub.current_period_end
+    FROM students s
+    LEFT JOIN subscriptions sub ON sub.student_id = s.id
+    ORDER BY s.created_at DESC
+  `).all();
+  return json({ students: results });
+}
+
 // ── Admin login ───────────────────────────────────────────────
 export async function handleAdminLogin(request: Request, env: Env): Promise<Response> {
   const { email, password } = await request.json() as { email?: string; password?: string };

@@ -3,7 +3,10 @@ import { api } from "./api";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ContentBrowser from "./pages/ContentBrowser";
+import AdminPanel from "./pages/admin/AdminPanel";
 import "./App.css";
+
+const isAdmin = window.location.pathname.startsWith("/admin");
 
 function getInitialPage() {
   const path = window.location.pathname;
@@ -19,7 +22,7 @@ const NAV = [
   { id: "ai-tutor",    icon: "🤖", label: "AI Tutor",     badge: "Soon" },
 ];
 
-export default function App() {
+function StudentApp() {
   const [student, setStudent] = useState(null);
   const [page, setPage] = useState(getInitialPage);
   const [activeNav, setActiveNav] = useState("library");
@@ -39,9 +42,7 @@ export default function App() {
   function navigate(p) { setPage(p); window.history.pushState({}, "", `/${p}`); }
 
   if (authLoading) return (
-    <div className="auth-page">
-      <div style={{ color: "#64748b", fontSize: ".9rem" }}>Loading…</div>
-    </div>
+    <div className="auth-page"><div style={{ color: "#64748b", fontSize: ".9rem" }}>Loading…</div></div>
   );
 
   if (!student) {
@@ -62,11 +63,9 @@ export default function App() {
         <div className="sidebar-section-title">Study</div>
         <nav className="sidebar-nav">
           {NAV.map(item => (
-            <button
-              key={item.id}
+            <button key={item.id}
               className={`nav-item${activeNav === item.id ? " active" : ""}`}
-              onClick={() => setActiveNav(item.id)}
-            >
+              onClick={() => setActiveNav(item.id)}>
               <span className="nav-icon">{item.icon}</span>
               {item.label}
               {item.badge && <span className="nav-badge">{item.badge}</span>}
@@ -87,26 +86,19 @@ export default function App() {
       </aside>
 
       <div className="main">
-        {activeNav === "library" && (
+        {activeNav === "library" ? (
           <>
-            <div className="topbar">
-              <span className="topbar-title">Library</span>
-            </div>
-            <div className="page-content">
-              <ContentBrowser student={student} />
-            </div>
+            <div className="topbar"><span className="topbar-title">Library</span></div>
+            <div className="page-content"><ContentBrowser student={student} /></div>
           </>
-        )}
-        {activeNav !== "library" && (
+        ) : (
           <>
-            <div className="topbar">
-              <span className="topbar-title">{NAV.find(n => n.id === activeNav)?.label}</span>
-            </div>
+            <div className="topbar"><span className="topbar-title">{NAV.find(n => n.id === activeNav)?.label}</span></div>
             <div className="page-content">
               <div className="coming-soon">
                 <div className="cs-icon">{NAV.find(n => n.id === activeNav)?.icon}</div>
                 <h3>{NAV.find(n => n.id === activeNav)?.label} — Coming Soon</h3>
-                <p>This feature is currently under development and will be available soon.</p>
+                <p>This feature is under development and will be available soon.</p>
               </div>
             </div>
           </>
@@ -114,4 +106,8 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default function App() {
+  return isAdmin ? <AdminPanel /> : <StudentApp />;
 }

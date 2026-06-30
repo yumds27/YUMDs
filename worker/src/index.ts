@@ -4,7 +4,7 @@ import { handleHealth } from "./routes/health";
 import {
   handleSignup, handleLogin, handleGoogleSignIn,
   handleVerifyEmail, handleForgotPassword, handleResetPassword,
-  handleMe, handleAdminLogin,
+  handleMe, handleAdminLogin, handleAdminListStudents,
 } from "./routes/auth";
 import {
   handleCreateCheckout, handleStripeWebhook, handleCreatePortal, handleSubscriptionStatus,
@@ -49,6 +49,7 @@ export default {
     } else if (pathname === "/api/auth/reset-password"  && method === "POST") { response = await handleResetPassword(request, env);
     } else if (pathname === "/api/auth/me"            && method === "GET")  { response = await handleMe(request, env);
     } else if (pathname === "/api/admin/login"        && method === "POST") { response = await handleAdminLogin(request, env);
+    } else if (pathname === "/api/admin/students"     && method === "GET")  { response = await handleAdminListStudents(request, env);
     } else if (pathname === "/api/stripe/checkout"    && method === "POST") { response = await handleCreateCheckout(request, env);
     } else if (pathname === "/api/stripe/webhook"     && method === "POST") { response = await handleStripeWebhook(request, env);
     } else if (pathname === "/api/stripe/portal"      && method === "POST") { response = await handleCreatePortal(request, env);

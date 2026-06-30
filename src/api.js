@@ -1,7 +1,10 @@
 const BASE = import.meta.env.VITE_API_BASE ?? "https://api.yarmoukmds.com";
 
-async function request(method, path, body) {
-  const token = localStorage.getItem("token");
+function getToken()      { return localStorage.getItem("token"); }
+function getAdminToken() { return localStorage.getItem("admin_token"); }
+
+async function request(method, path, body, useAdminToken = false) {
+  const token = useAdminToken ? getAdminToken() : getToken();
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
@@ -15,10 +18,8 @@ async function request(method, path, body) {
   return data;
 }
 
-const BASE = import.meta.env.VITE_API_BASE ?? "https://api.yarmoukmds.com";
-
 async function upload(path, formData) {
-  const token = localStorage.getItem("token");
+  const token = getAdminToken() ?? getToken();
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
     headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -29,25 +30,32 @@ async function upload(path, formData) {
   return data;
 }
 
+const adm = (method, path, body) => request(method, path, body, true);
+
 export const api = {
-  signup: (body) => request("POST", "/api/auth/signup", body),
-  login:  (body) => request("POST", "/api/auth/login",  body),
-  google: (credential) => request("POST", "/api/auth/google", { credential }),
-  me:     () => request("GET", "/api/auth/me"),
-  forgotPassword: (email) => request("POST", "/api/auth/forgot-password", { email }),
+  // Student auth
+  signup:         (body)            => request("POST", "/api/auth/signup", body),
+  login:          (body)            => request("POST", "/api/auth/login",  body),
+  google:         (credential)      => request("POST", "/api/auth/google", { credential }),
+  me:             ()                => request("GET",  "/api/auth/me"),
+  forgotPassword: (email)           => request("POST", "/api/auth/forgot-password", { email }),
   resetPassword:  (token, password) => request("POST", "/api/auth/reset-password", { token, password }),
-  // Content
-  getSubjects: (year) => request("GET", `/api/content/subjects?year=${year}`),
+  // Student content browse
+  getSubjects: (year)      => request("GET", `/api/content/subjects?year=${year}`),
   getTopics:   (subjectId) => request("GET", `/api/content/subjects/${subjectId}/topics`),
-  getFiles:    (topicId) => request("GET", `/api/content/topics/${topicId}/files`),
-  getFileUrl:  (fileId) => request("GET", `/api/content/files/${fileId}/url`),
-  // Admin content
-  createSubject: (body) => request("POST", "/api/admin/subjects", body),
-  updateSubject: (id, body) => request("PUT", `/api/admin/subjects/${id}`, body),
-  deleteSubject: (id) => request("DELETE", `/api/admin/subjects/${id}`),
-  createTopic:   (body) => request("POST", "/api/admin/topics", body),
-  updateTopic:   (id, body) => request("PUT", `/api/admin/topics/${id}`, body),
-  deleteTopic:   (id) => request("DELETE", `/api/admin/topics/${id}`),
+  getFiles:    (topicId)   => request("GET", `/api/content/topics/${topicId}/files`),
+  getFileUrl:  (fileId)    => request("GET", `/api/content/files/${fileId}/url`),
+  // Admin auth
+  adminLogin:    (body) => request("POST", "/api/admin/login", body),
+  // Admin content CRUD
+  createSubject: (body) => adm("POST",   "/api/admin/subjects",    body),
+  updateSubject: (id, body) => adm("PUT", `/api/admin/subjects/${id}`, body),
+  deleteSubject: (id)   => adm("DELETE", `/api/admin/subjects/${id}`),
+  createTopic:   (body) => adm("POST",   "/api/admin/topics",      body),
+  updateTopic:   (id, body) => adm("PUT", `/api/admin/topics/${id}`,   body),
+  deleteTopic:   (id)   => adm("DELETE", `/api/admin/topics/${id}`),
   uploadFile:    (formData) => upload("/api/admin/files/upload", formData),
-  deleteFile:    (id) => request("DELETE", `/api/admin/files/${id}`),
+  deleteFile:    (id)   => adm("DELETE", `/api/admin/files/${id}`),
+  // Admin students
+  getStudents: () => adm("GET", "/api/admin/students"),
 };
