@@ -4,6 +4,7 @@ import ContentManager from "./ContentManager";
 import StudentManager from "./StudentManager";
 import PaperManager from "./PaperManager";
 import DeckManager from "./DeckManager";
+import AboutManager from "./AboutManager";
 import Icon from "../../components/Icon";
 import { toggleTheme } from "../../lib/theme";
 
@@ -23,6 +24,7 @@ const NAV = [
   { id: "papers",     icon: "papers",     label: "Past Papers" },
   { id: "flashcards", icon: "decks",      label: "Flashcards" },
   { id: "students",   icon: "students",   label: "Students" },
+  { id: "about",      icon: "info",       label: "About Page" },
 ];
 
 export default function AdminPanel() {
@@ -43,8 +45,8 @@ export default function AdminPanel() {
   const initials = admin.email?.[0]?.toUpperCase() ?? "A";
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
+    <div className="shell admin-shell">
+      <aside className="sidebar open">
         <div className="sidebar-logo">
           <div className="sidebar-building-icon"><Icon name="building" size={52} /></div>
           <div className="logo-name">YUMD<span>s</span></div>
@@ -87,6 +89,7 @@ export default function AdminPanel() {
           {activeNav === "papers"     && <PaperManager />}
           {activeNav === "flashcards" && <DeckManager />}
           {activeNav === "students"   && <StudentManager />}
+          {activeNav === "about"      && <AboutManager />}
         </div>
       </div>
     </div>

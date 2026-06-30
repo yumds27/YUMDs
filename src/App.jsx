@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { api } from "./api";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import HomePage from "./pages/HomePage";
+import LandingPage from "./pages/LandingPage";
+import AboutPage from "./pages/AboutPage";
 import ContentBrowser from "./pages/ContentBrowser";
 import PastPapers from "./pages/PastPapers";
 import Flashcards from "./pages/Flashcards";
@@ -36,14 +37,16 @@ const NAV = [
   { id: "library",     icon: "library",    label: "Library" },
   { id: "past-papers", icon: "papers",     label: "Past Papers" },
   { id: "flashcards",  icon: "flashcards", label: "Flashcards" },
-  { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor",  badge: "Soon" },
+  { id: "about",       icon: "info",       label: "About" },
+  { id: "ai-tutor",    icon: "aiTutor",    label: "AI Tutor", badge: "Soon" },
 ];
 
 function StudentApp() {
-  const [student, setStudent] = useState(null);
-  const [page, setPage] = useState(getInitialPage);
-  const [activeNav, setActiveNav] = useState("home");
+  const [student, setStudent]       = useState(null);
+  const [page, setPage]             = useState(getInitialPage);
+  const [activeNav, setActiveNav]   = useState("home");
   const [authLoading, setAuthLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -56,15 +59,19 @@ function StudentApp() {
 
   function handleLogin(s) { setStudent(s); window.history.pushState({}, "", "/"); }
   function handleLogout() { localStorage.removeItem("token"); setStudent(null); setPage("login"); window.history.pushState({}, "", "/login"); }
-  function navigate(p) { setPage(p); window.history.pushState({}, "", `/${p}`); }
+
+  function navigate(id) {
+    setActiveNav(id);
+    setSidebarOpen(false);
+  }
 
   if (authLoading) return (
     <div className="auth-page"><div style={{ color: "#64748b", fontSize: ".9rem" }}>Loading…</div></div>
   );
 
   if (!student) {
-    if (page === "signup") return <SignupPage onNavigate={navigate} />;
-    return <LoginPage onLogin={handleLogin} onNavigate={navigate} />;
+    if (page === "signup") return <SignupPage onNavigate={setPage} />;
+    return <LoginPage onLogin={handleLogin} onNavigate={setPage} />;
   }
 
   const initials = student.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() ?? "?";
@@ -72,13 +79,19 @@ function StudentApp() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      {/* Sidebar backdrop */}
+      <div
+        className={`sidebar-backdrop${sidebarOpen ? " visible" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-logo">
           <div className="sidebar-building-icon">
             <Icon name="building" size={52} />
           </div>
           <div className="logo-name">YUMD<span>s</span></div>
-          <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
+          <div className="logo-sub">Yarmouk University Medical Resources &amp; Files</div>
         </div>
 
         <div className="sidebar-section-title">Study</div>
@@ -86,7 +99,7 @@ function StudentApp() {
           {NAV.map(item => (
             <button key={item.id}
               className={`nav-item${activeNav === item.id ? " active" : ""}`}
-              onClick={() => setActiveNav(item.id)}>
+              onClick={() => navigate(item.id)}>
               <Icon name={item.icon} size={16} className="nav-icon" />
               {item.label}
               {item.badge && <span className="nav-badge">{item.badge}</span>}
@@ -110,38 +123,33 @@ function StudentApp() {
       </aside>
 
       <div className="main">
-        {activeNav === "home" ? (
-          <>
-            <div className="topbar"><span className="topbar-title">Home</span></div>
-            <div className="page-content"><HomePage student={student} onNavigate={setActiveNav} /></div>
-          </>
-        ) : activeNav === "library" ? (
-          <>
-            <div className="topbar"><span className="topbar-title">Library</span></div>
-            <div className="page-content"><ContentBrowser student={student} /></div>
-          </>
-        ) : activeNav === "past-papers" ? (
-          <>
-            <div className="topbar"><span className="topbar-title">Past Papers</span></div>
-            <div className="page-content"><PastPapers student={student} /></div>
-          </>
-        ) : activeNav === "flashcards" ? (
-          <>
-            <div className="topbar"><span className="topbar-title">Flashcards</span></div>
-            <div className="page-content"><Flashcards /></div>
-          </>
-        ) : (
-          <>
-            <div className="topbar"><span className="topbar-title">{activeItem?.label}</span></div>
-            <div className="page-content">
-              <div className="coming-soon">
-                <div className="cs-icon"><Icon name={activeItem?.icon} size={48} /></div>
-                <h3>{activeItem?.label} — Coming Soon</h3>
-                <p>This feature is under development and will be available soon.</p>
-              </div>
+        <div className="topbar">
+          <button className="hamburger-btn" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle menu">
+            <Icon name="menu" size={20} />
+          </button>
+          <span className="topbar-title">{activeNav === "home" ? "" : activeItem?.label}</span>
+          <div className="topbar-actions" />
+        </div>
+
+        <div className="page-content">
+          {activeNav === "home" ? (
+            <LandingPage onNavigate={navigate} />
+          ) : activeNav === "library" ? (
+            <ContentBrowser student={student} />
+          ) : activeNav === "past-papers" ? (
+            <PastPapers student={student} />
+          ) : activeNav === "flashcards" ? (
+            <Flashcards />
+          ) : activeNav === "about" ? (
+            <AboutPage />
+          ) : (
+            <div className="coming-soon">
+              <div className="cs-icon"><Icon name={activeItem?.icon} size={48} /></div>
+              <h3>{activeItem?.label} — Coming Soon</h3>
+              <p>This feature is under development and will be available soon.</p>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

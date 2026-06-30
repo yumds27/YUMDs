@@ -69,6 +69,9 @@ export const api = {
   getStudyCards:      (deckId)      => request("GET",  `/api/flashcards/decks/${deckId}/study`),
   reviewCard:         (cardId, rating) => request("POST", `/api/flashcards/cards/${cardId}/review`, { rating }),
   // Flashcards (admin)
+  getAbout:        ()     => request("GET", "/api/about"),
+  adminGetAbout:   ()     => adm("GET",  "/api/about"),
+  adminUpdateAbout:(body) => adm("PUT",  "/api/admin/about", body),
   adminImportQuestions: (paperId, body) => adm("POST", `/api/admin/papers/${paperId}/import-questions`, body),
   adminImportCards:     (deckId,  body) => adm("POST", `/api/admin/decks/${deckId}/import-cards`,        body),
   adminListDecks:     ()            => adm("GET",    "/api/admin/decks"),

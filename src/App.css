@@ -31,7 +31,25 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
   flex-direction: column;
   position: fixed;
   top: 0; left: 0; bottom: 0;
-  z-index: 100;
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar.open { transform: translateX(0); }
+
+.sidebar-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 199;
+  opacity: 0; pointer-events: none;
+  transition: opacity .28s;
+}
+.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+/* Admin sidebar stays always open */
+.admin-shell .sidebar {
+  transform: none;
+  position: fixed;
 }
 
 .sidebar-logo {
@@ -121,8 +139,19 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
 .sign-out-btn:hover { color: #fff; }
 .icon svg { width: 100%; height: 100%; }
 
+/* ── Hamburger ───────────────────────────────────────────── */
+.hamburger-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text); padding: .35rem;
+  border-radius: 6px; display: inline-flex; align-items: center;
+  transition: background .15s; flex-shrink: 0;
+}
+.hamburger-btn:hover { background: var(--border); }
+
 /* ── Main ────────────────────────────────────────────────── */
-.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+.main { margin-left: 0; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+/* Admin main keeps the sidebar offset */
+.admin-shell .main { margin-left: var(--sidebar-w); }
 
 .topbar {
   background: var(--surface);
@@ -932,3 +961,148 @@ html.dark .auth-card { box-shadow: 0 4px 24px rgba(0,0,0,.4); }
 /* Deck/card form in dark */
 html.dark .deck-form label,
 html.dark .card-form label { color: var(--text); }
+
+/* ── Landing page ────────────────────────────────────────── */
+.landing {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: calc(100vh - 60px); padding: 2.5rem 1.5rem 3rem; gap: 3.5rem;
+}
+
+.landing-hero {
+  display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+  animation: landingHeroIn .65s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.landing-icon {
+  width: 100px; height: 100px; border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(22,32,64,.18), 0 2px 8px rgba(0,0,0,.08);
+  animation: landingIconIn .55s cubic-bezier(.2,.8,.2,1) both;
+  border: 2px solid rgba(255,255,255,.8);
+}
+.landing-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.landing-brand {
+  text-align: center;
+  animation: landingSlideUp .65s .18s cubic-bezier(.2,.8,.2,1) both;
+}
+.landing-title {
+  font-size: clamp(3rem, 8vw, 5rem); font-weight: 900;
+  color: var(--navy); letter-spacing: -.05em; line-height: 1;
+}
+.landing-title span { color: rgba(22,32,64,.28); }
+.landing-tagline {
+  font-size: .82rem; color: var(--muted); margin-top: .6rem;
+  text-transform: uppercase; letter-spacing: .1em; line-height: 1.5;
+}
+
+.landing-cards {
+  display: flex; gap: 1.25rem; align-items: stretch;
+  flex-wrap: wrap; justify-content: center; width: 100%; max-width: 760px;
+}
+
+.landing-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 2rem 1.5rem 1.5rem;
+  width: 200px; min-width: 160px; flex: 1; max-width: 220px;
+  display: flex; flex-direction: column; align-items: center; gap: .9rem;
+  cursor: pointer; font-family: inherit; text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  transition: box-shadow .22s, transform .22s, border-color .22s;
+  animation: landingCardIn .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.landing-card:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,.13);
+  transform: translateY(-5px);
+}
+.landing-card--featured {
+  max-width: 240px; border-color: var(--navy);
+  box-shadow: 0 4px 24px rgba(22,32,64,.12);
+}
+.landing-card--featured:hover { border-color: var(--blue); }
+
+.landing-card-icon {
+  width: 76px; height: 76px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: transform .22s;
+}
+.landing-card:hover .landing-card-icon { transform: scale(1.08); }
+
+.landing-card-title {
+  font-size: 1rem; font-weight: 800; color: var(--text); line-height: 1.2;
+}
+.landing-card-desc {
+  font-size: .78rem; color: var(--muted); line-height: 1.55; flex: 1;
+}
+.landing-card-arrow {
+  color: var(--border); display: flex; align-items: center;
+  transform: rotate(180deg); transition: color .18s, transform .18s;
+}
+.landing-card:hover .landing-card-arrow { color: var(--blue); transform: rotate(180deg) translateX(-3px); }
+
+@keyframes landingIconIn {
+  from { opacity: 0; transform: translateY(-18px) scale(.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes landingSlideUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes landingHeroIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes landingCardIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode landing */
+html.dark .landing-title { color: var(--text); }
+html.dark .landing-title span { color: rgba(226,232,240,.25); }
+html.dark .landing-card--featured { border-color: var(--blue); box-shadow: 0 4px 24px rgba(59,130,246,.12); }
+html.dark .landing-card:hover { box-shadow: 0 16px 48px rgba(0,0,0,.5); }
+html.dark .landing-icon { box-shadow: 0 12px 40px rgba(0,0,0,.4); border-color: rgba(255,255,255,.1); }
+
+/* ── About page (student) ─────────────────────────────────── */
+.about-page {
+  max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+.about-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2.5rem 2rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,.06);
+}
+.about-logo {
+  display: flex; justify-content: center; margin-bottom: 1.5rem;
+}
+.about-logo-img {
+  width: 80px; height: 80px; border-radius: 18px;
+  object-fit: contain; border: 1.5px solid var(--border);
+}
+.about-title {
+  font-size: 1.5rem; font-weight: 800; color: var(--navy);
+  margin-bottom: 1.25rem; text-align: center;
+}
+.about-body { font-size: .925rem; line-height: 1.75; color: var(--text); }
+.about-body p { margin-bottom: .75rem; }
+.about-body p:last-child { margin-bottom: 0; }
+.about-empty { color: var(--muted); font-size: .9rem; text-align: center; padding: 1rem 0; }
+.about-loading { padding: 3rem; text-align: center; color: var(--muted); }
+
+/* Dark */
+html.dark .about-title { color: #93c5fd; }
+
+/* ── About manager (admin) ───────────────────────────────── */
+.about-manager { max-width: 760px; }
+.about-form { display: flex; flex-direction: column; }
+.about-form-body { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
+.about-form-label {
+  display: flex; flex-direction: column; gap: .4rem;
+  font-size: .875rem; font-weight: 600; color: var(--text);
+}
+.about-textarea { resize: vertical; min-height: 200px; font-family: inherit; line-height: 1.6; }
+.about-form-footer {
+  display: flex; justify-content: flex-end;
+  padding: .75rem 1.25rem; border-top: 1px solid var(--border);
+}

@@ -29,6 +29,7 @@ import {
   handleAdminListCards, handleAdminCreateCard, handleAdminUpdateCard, handleAdminDeleteCard,
   handleAdminImportCards,
 } from "./routes/flashcards";
+import { handleGetAbout, handleAdminUpdateAbout } from "./routes/about";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -113,6 +114,9 @@ export default {
     } else if ((m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/))            && method === "PUT")    { response = await handleAdminUpdateCard(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/admin\/cards\/(\d+)$/))            && method === "DELETE") { response = await handleAdminDeleteCard(request, env, m[1]);
     } else if ((m = pathname.match(/^\/api\/admin\/decks\/(\d+)\/import-cards$/)) && method === "POST") { response = await handleAdminImportCards(request, env, m[1]);
+    // ── About ────────────────────────────────────────────────────
+    } else if (pathname === "/api/about"        && method === "GET")  { response = await handleGetAbout(request, env);
+    } else if (pathname === "/api/admin/about"  && method === "PUT")  { response = await handleAdminUpdateAbout(request, env);
     } else {
       response = json({ error: "not found" }, { status: 404 });
     }
