@@ -1379,7 +1379,8 @@ html.dark .card-form label { color: var(--text); }
   height: 100%;
   object-fit: contain;
   object-position: right bottom;
-  opacity: 0.14;
+  opacity: 0.22;
+  filter: brightness(0) invert(1);
 }
 .lp-medical-decor {
   position: absolute;
@@ -1736,7 +1737,7 @@ html.dark .lp-why-card.card-purple .lp-why-icon { background: rgba(124,58,237,.1
 @media (max-width: 768px) {
   .lp-hero { min-height: 65vh; }
   .lp-hero-content { padding: 3.5rem 1.5rem; }
-  .lp-hero-illustration { width: 75%; opacity: 0.09; }
+  .lp-hero-illustration { width: 75%; opacity: 0.18; }
   .lp-stats-inner { padding: 2.25rem 1.5rem; gap: 1.5rem; }
   .lp-section { padding: 3.25rem 0 4rem; }
   .lp-inner { padding: 0 1.25rem; }
