@@ -1061,10 +1061,10 @@ html.dark .card-form label { color: var(--text); }
 }
 
 .landing-icon {
-  width: 340px; height: 130px;
+  width: min(480px, 80vw);
   animation: landingIconIn .55s cubic-bezier(.2,.8,.2,1) both;
 }
-.landing-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.landing-icon img { width: 100%; height: auto; display: block; }
 
 .landing-brand {
   text-align: center;
