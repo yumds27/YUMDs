@@ -23,7 +23,7 @@ export async function extractPdfText(file) {
       lineMap.get(y).push({ x: it.transform[4], t: it.str });
     }
     [...lineMap.keys()].sort((a, b) => b - a).forEach(y => {
-      const line = lineMap.get(y).sort((a, b) => a.x - b.x).map(i => i.t).join("").trim();
+      const line = lineMap.get(y).sort((a, b) => a.x - b.x).map(i => i.t).join(" ").trim();
       if (line) out += line + "\n";
     });
     out += "\n";
@@ -33,19 +33,57 @@ export async function extractPdfText(file) {
 
 // ── Past-papers MCQ parser ────────────────────────────────────────────────────
 // Returns [{ body, option_a, option_b, option_c, option_d, option_e, correct, explanation }]
+//
+// KEY FIX: Only treat a number as a question boundary if it is SEQUENTIAL
+// (i.e., exactly prevNum+1). This prevents numbered lists inside explanations
+// (which restart from 1 or skip numbers) from creating false question splits.
 export function parseQuestionsFromText(rawText) {
-  const text = rawText.replace(/\r\n|\r/g, "\n").replace(/ /g, " ");
-  const segs = [];
-  // Match question starters: "1.", "1)", "Q1.", "Q1)", "Question 1."
+  const text = rawText.replace(/\r\n|\r/g, "\n").replace(/ /g, " ");
+
+  // Find all candidate question starters: "1.", "1)", "Q1.", "Q1)", "Question 1."
   const re = /(?:^|\n)[ \t]*(?:Q(?:uestion)?\.?\s*)?(\d+)[.)]\s+/g;
-  let m, prevEnd = 0, prevNum = 0;
+  const candidates = [];
+  let m;
   while ((m = re.exec(text)) !== null) {
-    if (prevEnd) segs.push({ num: prevNum, content: text.slice(prevEnd, m.index) });
-    prevNum = +m[1];
-    prevEnd = m.index + m[0].length;
+    candidates.push({ num: +m[1], pos: m.index, end: m.index + m[0].length });
   }
-  if (prevEnd) segs.push({ num: prevNum, content: text.slice(prevEnd) });
-  return segs.map(s => parseOneQ(s.content)).filter(q => q?.body && q.option_a && q.option_b);
+
+  // Only keep candidates that follow a strict sequential order starting at 1.
+  // This filters out numbered lists inside explanations.
+  const kept = [];
+  let expected = 1;
+  for (const c of candidates) {
+    if (c.num === expected) {
+      kept.push(c);
+      expected++;
+    }
+    // If we see the expected number later, keep looking (skip non-sequential noise).
+  }
+
+  // Build content segments from the kept boundaries.
+  const segs = [];
+  for (let i = 0; i < kept.length; i++) {
+    const start = kept[i].end;
+    const end   = i + 1 < kept.length ? kept[i + 1].pos : text.length;
+    segs.push(text.slice(start, end));
+  }
+
+  const results = segs.map(s => parseOneQ(s)).filter(q => q?.body && q.option_a && q.option_b);
+
+  // Fallback: if numbered-question format found nothing, try un-numbered "Q:" / "Question:" blocks
+  if (results.length === 0) {
+    const qre = /(?:^|\n)(?:Q(?:uestion)?[:\s]+)(?!\d)/gi;
+    const fsegs = [];
+    let fPrevEnd = 0;
+    while ((m = qre.exec(text)) !== null) {
+      if (fPrevEnd) fsegs.push(text.slice(fPrevEnd, m.index));
+      fPrevEnd = m.index + m[0].length;
+    }
+    if (fPrevEnd) fsegs.push(text.slice(fPrevEnd));
+    return fsegs.map(s => parseOneQ(s)).filter(q => q?.body && q.option_a && q.option_b);
+  }
+
+  return results;
 }
 
 function parseOneQ(raw) {
@@ -54,22 +92,26 @@ function parseOneQ(raw) {
   let bodyLines = [], explLines = [], correct = "a", lastOpt = null, phase = "body";
 
   for (const line of lines) {
-    // Choice: A. / A) / (A) / a.
+    // Choice: A. / A) / (A) / a. etc. — must be at start of line
     const optM = line.match(/^[(]?([A-Ea-e])[.)]\s+(.+)/);
     if (optM) {
-      phase = "choices"; lastOpt = optM[1].toLowerCase();
-      opts[lastOpt] = optM[2].trim(); continue;
+      phase = "choices";
+      lastOpt = optM[1].toLowerCase();
+      opts[lastOpt] = optM[2].trim();
+      continue;
     }
-    // Answer indicator
+    // Answer indicator: "Answer: B", "Correct: B", "Ans: B"
     const ansM = line.match(/^(?:answer|correct(?:\s+answer)?|ans)[:\s.]+([A-Ea-e])/i);
     if (ansM) { correct = ansM[1].toLowerCase(); phase = "after"; lastOpt = null; continue; }
     // Explanation indicator
     const explM = line.match(/^(?:explanation|rationale|reason|discussion)[:\s]*(.*)/i);
     if (explM) { phase = "expl"; if (explM[1]) explLines.push(explM[1]); lastOpt = null; continue; }
 
-    if (phase === "body") bodyLines.push(line);
-    else if (phase === "choices" && lastOpt) opts[lastOpt] += " " + line;
-    else if (phase === "expl") explLines.push(line);
+    if      (phase === "body")                  bodyLines.push(line);
+    else if (phase === "choices" && lastOpt)    opts[lastOpt] += " " + line;
+    else if (phase === "expl")                  explLines.push(line);
+    // In "after" phase (post-answer, pre-explanation), collect as explanation
+    else if (phase === "after")                 { phase = "expl"; explLines.push(line); }
   }
 
   return {
@@ -85,11 +127,9 @@ function parseOneQ(raw) {
 }
 
 // ── Flashcard parsers ─────────────────────────────────────────────────────────
-// Returns [{ front, back }]
 export function parseFlashcardsFromText(text) {
-  const t = text.replace(/\r\n|\r/g, "\n").replace(/ /g, " ");
+  const t = text.replace(/\r\n|\r/g, "\n").replace(/ /g, " ");
 
-  // Anki format: front::back
   if (t.includes("::")) {
     const cards = t.split("\n")
       .filter(l => l.includes("::"))
@@ -98,7 +138,6 @@ export function parseFlashcardsFromText(text) {
     if (cards.length) return cards;
   }
 
-  // Q: / A: pairs
   {
     const cards = []; let front = null;
     for (const line of t.split("\n")) {
@@ -112,7 +151,6 @@ export function parseFlashcardsFromText(text) {
     if (valid.length) return valid;
   }
 
-  // Blank-line-separated paragraph pairs
   {
     const cards = t.split(/\n{2,}/).map(b => {
       const ls = b.trim().split("\n").map(l => l.trim()).filter(Boolean);
