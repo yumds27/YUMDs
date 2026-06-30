@@ -335,6 +335,7 @@ body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color
   box-shadow: 0 4px 24px rgba(0,0,0,.07); border: 1px solid var(--border);
 }
 .auth-logo { text-align: center; margin-bottom: 1.75rem; }
+.auth-logo-img { width: 100%; max-height: 120px; object-fit: contain; margin-bottom: .5rem; }
 .auth-logo .logo-name { font-size: 2rem; font-weight: 800; color: var(--navy); letter-spacing: -.03em; }
 .auth-logo .logo-name span { color: rgba(22,32,64,.4); }
 .auth-logo .logo-sub { font-size: .7rem; color: var(--muted); margin-top: .3rem; text-transform: uppercase; letter-spacing: .08em; }

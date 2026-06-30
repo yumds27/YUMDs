@@ -24,6 +24,7 @@ export default function SignupPage({ onNavigate }) {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
+          <img src="/logo.jfif" alt="YUMDs" className="auth-logo-img" onError={e => e.target.style.display="none"} />
           <div className="logo-name">YUMD<span>s</span></div>
           <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
         </div>
@@ -40,6 +41,7 @@ export default function SignupPage({ onNavigate }) {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
+          <img src="/logo.jfif" alt="YUMDs" className="auth-logo-img" onError={e => e.target.style.display="none"} />
           <div className="logo-name">YUMD<span>s</span></div>
           <div className="logo-sub">Yarmouk University Medical Resources & Files</div>
         </div>
